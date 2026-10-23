@@ -16,8 +16,10 @@ struct OverviewDigest: Equatable, Sendable {
     let successRate: Double?
     let inFlightFull: Bool
     let earliestRecovery: String?
+    /// 今日消耗 tokens（由 usage 小时桶聚合；无数据为 nil）
+    let todayTokens: Int?
 
-    init(overview: OverviewResponse) {
+    init(overview: OverviewResponse, usage: UsageSnapshot? = nil) {
         let accounts = overview.accounts
         total = overview.total
         healthy = overview.healthy ?? accounts.filter(\.isHealthy).count
@@ -32,6 +34,7 @@ struct OverviewDigest: Equatable, Sendable {
         successRate = requests > 0 ? min(Double(successes) / Double(requests), 1) : nil
 
         earliestRecovery = Self.earliestRecovery(in: accounts)
+        todayTokens = usage.map(Self.todayTokens(in:))
     }
 
     // MARK: 派生
@@ -86,5 +89,31 @@ struct OverviewDigest: Equatable, Sendable {
             return (date, raw)
         }
         return candidates.min { $0.0 < $1.0 }?.1
+    }
+}
+
+// MARK: - 今日 token
+
+extension OverviewDigest {
+    /// 把 usage series 里「今天」的小时桶 total_tokens 相加。
+    /// 桶键形如 "2026-10-23T19"（服务器时区）。
+    static func todayTokens(in usage: UsageSnapshot, now: Date = Date()) -> Int? {
+        let buckets = usage.series ?? []
+        guard !buckets.isEmpty else { return nil }
+
+        var eastern8 = Calendar(identifier: .gregorian)
+        eastern8.timeZone = TimeZone(secondsFromGMT: 8 * 3600)!
+        let prefix = eastern8.dateComponents([.year, .month, .day], from: now)
+        guard let y = prefix.year, let m = prefix.month, let d = prefix.day else { return nil }
+        let dayKey = String(format: "%04d-%02d-%02d", y, m, d)
+
+        var total = 0
+        var hit = false
+        for point in buckets {
+            guard let key = point.t, key.hasPrefix(dayKey) else { continue }
+            hit = true
+            total += point.totalTokens ?? point.tokens ?? 0
+        }
+        return hit ? total : 0
     }
 }

@@ -289,6 +289,8 @@ struct UsagePoint: Codable, Identifiable, Sendable {
     let key: String?
     let requests: Int?
     let tokens: Int?
+    /// JSON: total_tokens（UsagePoint.tokens 在部分响应里不存在，以本字段为准）
+    let totalTokens: Int?
     let credits: Double?
 }
 

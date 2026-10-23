@@ -18,9 +18,9 @@ struct OverviewStatsGrid: View {
                 tint: Accent.primary
             )
             StatTile(
-                title: "累计请求",
-                value: Fmt.compact(digest.requests),
-                caption: "自接入以来"
+                title: "今日消耗",
+                value: Fmt.compact(digest.todayTokens ?? 0),
+                caption: digest.todayTokens == nil ? "暂无用量数据" : "tokens · 今日"
             )
             StatTile(
                 title: "成功率",

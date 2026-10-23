@@ -8,12 +8,13 @@ import Observation
 @Observable
 final class OverviewModel {
     private let loader = Loader<OverviewResponse>()
+    private let usageLoader = Loader<UsageSnapshot>()
 
     var toast: Toast?
     private(set) var runningBatch: BatchAction?
 
     var overview: OverviewResponse? { loader.value }
-    var digest: OverviewDigest? { loader.value.map { OverviewDigest(overview: $0) } }
+    var digest: OverviewDigest? { loader.value.map { OverviewDigest(overview: $0, usage: usageLoader.value) } }
     var isLoading: Bool { loader.isLoading }
     var error: String? { loader.error }
     var lastUpdated: Date? { loader.lastUpdated }
@@ -37,6 +38,8 @@ final class OverviewModel {
             return
         }
         await loader.load { try await client.overview() }
+        // 今日 token 来自 usage 小时桶，失败不影响主数据
+        try? await usageLoader.load { try await client.usage() }
     }
 
     // MARK: 批量操作
