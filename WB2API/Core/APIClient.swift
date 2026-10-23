@@ -276,7 +276,11 @@ extension APIClient {
     /// 单独执行一个任务（服务端会走完「接受 → 执行 → 回读校验 → 领奖」全流程）。
     func runTask(uid: String, code: String) async throws -> TaskRunOutcome {
         struct Body: Encodable { let taskCode: String }
-        let raw = try await post("\(Self.apiPrefix)/accounts/\(uid)/tasks/auto", body: Body(taskCode: code))
+        let raw = try await post(
+            "\(Self.apiPrefix)/accounts/\(uid)/tasks/auto",
+            body: Body(taskCode: code),
+            as: JSONValue.self
+        )
         return TaskRunOutcome(raw)
     }
 
