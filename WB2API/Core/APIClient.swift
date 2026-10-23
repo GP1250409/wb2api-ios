@@ -249,6 +249,28 @@ extension APIClient {
         try await get("\(Self.apiPrefix)/accounts/\(uid)/tasks")
     }
 
+    /// 接受任务（可多个 task_codes，幂等）
+    func acceptTasks(uid: String, codes: [String]) async throws -> JSONValue {
+        struct Body: Encodable { let taskCodes: [String] }
+        return try await post("\(Self.apiPrefix)/accounts/\(uid)/tasks/accept", body: Body(taskCodes: codes))
+    }
+
+    /// 领取单个任务奖励（未达标时上游报业务错误）
+    func claimTask(uid: String, code: String) async throws -> JSONValue {
+        struct Body: Encodable { let taskCode: String }
+        return try await post("\(Self.apiPrefix)/accounts/\(uid)/tasks/claim", body: Body(taskCode: code))
+    }
+
+    /// 扫描全部账号任务（返回每账号任务明细，用于逐项操作）
+    func scanAllTasks() async throws -> JSONValue {
+        try await post("\(Self.apiPrefix)/tasks/scan_all")
+    }
+
+    /// 暂停执行队列：当前任务跑完后，剩余任务不再执行
+    func pauseTaskQueue() async throws -> JSONValue {
+        try await post("\(Self.apiPrefix)/tasks/pause")
+    }
+
     // 批量操作
     func batch(_ action: String) async throws -> JSONValue {
         try await post("\(Self.apiPrefix)/\(action)")

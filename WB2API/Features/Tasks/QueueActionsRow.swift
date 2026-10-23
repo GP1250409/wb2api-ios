@@ -1,24 +1,37 @@
 import SwiftUI
 
-/// 队列操作：执行队列（主）+ 扫描全部（次），执行中内联进度。
+/// 队列操作：执行队列（主）+ 扫描全部（次）+ 暂停（运行中时替代执行按钮）。
 struct QueueActionsRow: View {
     let isScanning: Bool
     let isRunning: Bool
-    let onScan: () -> Void
-    let onRun: () -> Void
+    var onScan: () -> Void
+    var onRun: () -> Void
+    var onPause: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Metrics.s) {
-            Button(action: onRun) {
-                QueueActionLabel(
-                    title: isRunning ? "正在执行…" : "执行队列",
-                    systemImage: "play.fill",
-                    isBusy: isRunning
-                )
+            if isRunning {
+                Button(action: onPause) {
+                    QueueActionLabel(
+                        title: "暂停队列",
+                        systemImage: "pause.fill",
+                        isBusy: false
+                    )
+                }
+                .buttonStyle(.glassProminent)
+                .tint(.red)
+            } else {
+                Button(action: onRun) {
+                    QueueActionLabel(
+                        title: "执行队列",
+                        systemImage: "play.fill",
+                        isBusy: false
+                    )
+                }
+                .buttonStyle(.glassProminent)
+                .tint(Accent.primary)
+                .disabled(isScanning)
             }
-            .buttonStyle(.glassProminent)
-            .tint(Accent.primary)
-            .disabled(isScanning || isRunning)
 
             Button(action: onScan) {
                 QueueActionLabel(
@@ -30,11 +43,19 @@ struct QueueActionsRow: View {
             .buttonStyle(.glass)
             .disabled(isScanning || isRunning)
 
-            Label("扫描会刷新所有账号的任务；执行会按队列并发拉取。", systemImage: "info.circle")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .padding(.top, Metrics.xs)
+            if isRunning {
+                Label("暂停后当前任务会跑完，其余任务不再执行。", systemImage: "pause.circle")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+                    .padding(.top, Metrics.xs)
+            } else {
+                Label("扫描会刷新所有账号的任务；执行会按队列并发拉取。", systemImage: "info.circle")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, Metrics.xs)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .animation(.snappy, value: isRunning)
     }
 }
