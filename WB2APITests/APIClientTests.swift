@@ -58,8 +58,8 @@ final class APIClientTests: XCTestCase {
     }
 
     func testSendsBearerTokenAndCorrectPath() async throws {
-        stub(body: try Fixture.data("overview"))
-        _ = try await client.overview()
+        stub(body: try Fixture.data("status"))
+        _ = try await client.status()
 
         let request = try XCTUnwrap(StubURLProtocol.lastRequest)
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer test-key")
