@@ -1,6 +1,6 @@
 # WorkBuddy2API · iOS
 
-WorkBuddy2API 面板的原生 iOS 客户端。SwiftUI，零第三方依赖，iOS 18+。
+WorkBuddy2API 面板的原生 iOS 客户端。SwiftUI，零第三方依赖，**iOS 26**（Liquid Glass + 原生动效），紫色强调色。
 
 ## 能做什么
 
@@ -18,7 +18,7 @@ WorkBuddy2API 面板的原生 iOS 客户端。SwiftUI，零第三方依赖，iOS
 
 ## 设计与实现
 
-设计遵循 `swiftui-design-skill`：单一暖色强调（赤陶 `#C2542F`）、暖调中性色、New York 衬线标题、8pt 间距网格、SF Symbols、每屏一个 signature detail。全部使用系统原生组件，无自绘控件。
+视觉遵循 iOS 26 原生质感：Liquid Glass 卡片（`.glassEffect`）、系统文本样式、SF Symbols、原生转场（`.navigationTransition(.zoom)`）。唯一强调色为紫 `#7C5CFF`，其余全部使用系统语义色。
 
 - 设计规范：[docs/brand-spec.md](docs/brand-spec.md)
 - 颜色唯一来源：`WB2API/Design/DesignTokens.swift`

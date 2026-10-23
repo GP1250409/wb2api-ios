@@ -63,8 +63,17 @@ struct APIClient: Sendable {
         return req
     }
 
-    private func execute(_ req: URLRequest) async throws -> Data {
-        let data: Data
+    /// 把上游返回的 HTML 错误页压成一句人话，避免把整段 HTML 丢给用户。
+    private static func humanMessage(_ raw: String, code: Int) -> String {
+        let stripped = raw
+            .replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if stripped.isEmpty { return "HTTP \(code)" }
+        return "\(stripped.prefix(120))"
+    }
+
+    private func execute(_ req: URLRequest) async throws -> Data {        let data: Data
         let response: URLResponse
         do {
             (data, response) = try await session.data(for: req)
@@ -76,8 +85,8 @@ struct APIClient: Sendable {
         }
         if http.statusCode == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(http.statusCode) else {
-            let msg = String(data: data.prefix(300), encoding: .utf8)
-            throw APIError.http(http.statusCode, msg)
+            let raw = String(data: data.prefix(600), encoding: .utf8) ?? ""
+            throw APIError.http(http.statusCode, Self.humanMessage(raw, code: http.statusCode))
         }
         return data
     }
@@ -127,8 +136,21 @@ struct AnyEncodable: Encodable {
 extension APIClient {
     static let apiPrefix = "panel/api"
 
+    /// 账号状态。公网 nginx 只代理 `/panel/` 与 `/v1/`，根路径 `/status` 返回 404，
+    /// 因此 404 时自动回退到 `/panel/api/overview`（返回同样的账号数组）。
     func status() async throws -> StatusResponse {
-        try await get("status")
+        do {
+            return try await get("status")
+        } catch APIError.http(let code, _) where code == 404 {
+            let overview: OverviewResponse = try await get("\(Self.apiPrefix)/overview")
+            return StatusResponse(
+                accounts: overview.accounts,
+                healthy: overview.healthy,
+                cooling: overview.cooling,
+                disabled: overview.disabled,
+                inFlightFull: overview.inFlightFull
+            )
+        }
     }
 
     func overview() async throws -> OverviewResponse {

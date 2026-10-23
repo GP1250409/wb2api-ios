@@ -1,23 +1,22 @@
 import SwiftUI
 
-/// 设置：服务器地址、api_key（Keychain）、连接测试、关于、退出登录。
+/// 设置：服务器地址、访问密钥、连接测试、关于与退出登录。
 struct SettingsView: View {
     @Environment(SessionStore.self) private var session
 
-    private var client: APIClient? { session.client() }
-
     @State private var keyDraft = ""
-    @State private var loadedKey = false
-    @State private var testing = false
+    @State private var isTesting = false
+    @State private var testMessage: String?
+    @State private var testPassed = false
+    @State private var isConfirmingSignOut = false
     @State private var toast: Toast?
-    @State private var showSignOut = false
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     }
 
     private var buildNumber: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
 
     var body: some View {
@@ -25,14 +24,18 @@ struct SettingsView: View {
 
         Form {
             Section {
-                TextField("https://workbuddy.example.com", text: $session.baseURLString)
+                TextField("https://…", text: $session.baseURLString)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.URL)
                     .autocorrectionDisabled()
+
+                LabeledContent("当前地址", value: session.baseURLString)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             } header: {
                 Text("服务器")
             } footer: {
-                Text("修改后立即生效，下次请求会使用新地址。")
+                Text("支持自建面板地址；不带协议时自动补 https://。")
             }
 
             Section {
@@ -40,126 +43,127 @@ struct SettingsView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
 
-                Button {
-                    saveKey()
-                } label: {
-                    HStack {
-                        Label("保存密钥", systemImage: "key")
-                        Spacer()
-                        if session.apiKey == keyDraft.trimmingCharacters(in: .whitespacesAndNewlines), !keyDraft.isEmpty {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(Palette.success)
-                        }
-                    }
-                }
-                .disabled(keyDraft.trimmingCharacters(in: .whitespacesAndNewlines) == session.apiKey)
+                Button("保存密钥", systemImage: "key.fill", action: saveKey)
+                    .disabled(!canSaveKey)
             } header: {
                 Text("访问密钥")
             } footer: {
-                Text("密钥只写入本机钥匙串，不随 iCloud 同步，也不会发往第三方。")
+                Text("密钥只写入本机 Keychain，不会参与配置同步。")
             }
 
             Section {
-                Button {
-                    Task { await testConnection() }
-                } label: {
+                Button(action: testConnection) {
                     HStack {
-                        Label("测试连接", systemImage: "antenna.radiowaves.left.and.right")
-                        Spacer()
-                        if testing {
-                            ProgressView().controlSize(.small)
+                        Label("测试连接", systemImage: "bolt.horizontal.circle")
+                        Spacer(minLength: Metrics.s)
+                        if isTesting {
+                            ProgressView()
                         }
                     }
                 }
-                .disabled(testing || session.baseURL == nil)
+                .disabled(isTesting)
+
+                if let testMessage {
+                    Label(testMessage, systemImage: testPassed ? "checkmark.circle.fill" : "xmark.octagon.fill")
+                        .font(.footnote)
+                        .foregroundStyle(testPassed ? Color.green : Color.red)
+                        .symbolEffect(.bounce, value: testPassed)
+                }
             } header: {
-                Text("连接")
+                Text("诊断")
             } footer: {
-                Text(session.baseURL == nil ? "服务器地址无效，请检查格式。" : "会用当前填写的地址与密钥请求一次概览接口。")
+                Text("调用 panel/api/overview 验证地址与密钥是否可用。")
             }
 
             Section {
                 LabeledContent("版本", value: appVersion)
                 LabeledContent("构建", value: buildNumber)
-                if let url = URL(string: "https://github.com/chenyynx/wb2api-ios") {
-                    Link(destination: url) {
-                        HStack {
-                            Label("GitHub 仓库", systemImage: "link")
-                            Spacer()
-                            Image(systemName: "arrow.up.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(Palette.textTertiary)
-                        }
-                    }
-                    .foregroundStyle(Palette.accent)
-                }
-                LabeledContent("数据来源", value: "WorkBuddy2API")
+                LabeledContent("系统要求", value: "iOS 26")
+                LabeledContent("设计", value: "Liquid Glass · 紫色强调")
             } header: {
                 Text("关于")
+            } footer: {
+                Text("WorkBuddy2API · 账号池运维面板")
             }
 
             Section {
-                Button(role: .destructive) {
-                    showSignOut = true
-                } label: {
-                    Label("退出登录", systemImage: "rectangle.portrait.and.arrow.right")
-                }
+                Button("退出登录", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive, action: askSignOut)
             } footer: {
-                Text("只清除本机保存的 api_key，不会影响服务器上的账号池。")
+                Text("退出后需要重新填写 api_key 才能访问面板。")
             }
         }
-        .scrollContentBackground(.hidden)
-        .background(Palette.background)
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
-        .task {
-            if !loadedKey {
-                keyDraft = session.apiKey
-                loadedKey = true
-            }
-        }
-        .toast($toast)
-        .confirmationDialog("退出登录？", isPresented: $showSignOut, titleVisibility: .visible) {
-            Button("退出并清除密钥", role: .destructive) {
-                session.signOut()
-                keyDraft = ""
-                toast = Toast(kind: .info, text: "已退出登录")
-            }
-            Button("取消", role: .cancel) {}
+        .confirmationDialog(
+            "退出登录？",
+            isPresented: $isConfirmingSignOut,
+            titleVisibility: .visible
+        ) {
+            Button("退出登录", role: .destructive, action: signOut)
+            Button("取消", role: .cancel, action: dismissSignOutPrompt)
         } message: {
-            Text("退出后需要重新填写 api_key 才能访问面板。")
+            Text("本机保存的 api_key 将被删除。")
         }
+        .task { loadKeyDraft() }
+        .toast($toast)
+    }
+
+    // MARK: - 状态
+
+    private var canSaveKey: Bool {
+        let trimmed = keyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && trimmed != session.apiKey
     }
 
     // MARK: - 动作
 
-    private func saveKey() {
-        let trimmed = keyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        session.update(apiKey: trimmed)
-        keyDraft = trimmed
-        toast = Toast(kind: .success, text: trimmed.isEmpty ? "已清除密钥" : "密钥已保存到钥匙串")
+    private func loadKeyDraft() {
+        keyDraft = session.apiKey
     }
 
-    private func testConnection() async {
-        guard let baseURL = session.baseURL else {
-            toast = Toast(kind: .failure, text: "服务器地址无效")
+    private func saveKey() {
+        session.update(apiKey: keyDraft)
+        toast = Toast(kind: .success, text: "密钥已保存")
+    }
+
+    private func testConnection() {
+        Task { await performTest() }
+    }
+
+    private func performTest() async {
+        guard let client = session.client() else {
+            testPassed = false
+            testMessage = "请先填写服务器地址"
             return
         }
-        testing = true
-        defer { testing = false }
-
-        let probe = APIClient(
-            baseURL: baseURL,
-            apiKey: keyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        )
+        isTesting = true
+        defer { isTesting = false }
         do {
-            let overview = try await probe.overview()
-            toast = Toast(kind: .success, text: "连接成功 · 共 \(overview.total) 个账号")
+            let overview = try await client.overview()
+            testPassed = true
+            testMessage = "连接正常 · \(overview.accounts.count) 个账号"
         } catch {
-            toast = Toast(
-                kind: .failure,
-                text: (error as? APIError)?.errorDescription ?? error.localizedDescription
-            )
+            testPassed = false
+            testMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
         }
     }
+
+    private func askSignOut() {
+        isConfirmingSignOut = true
+    }
+
+    private func dismissSignOutPrompt() {
+        isConfirmingSignOut = false
+    }
+
+    private func signOut() {
+        session.signOut()
+    }
+}
+
+#Preview {
+    NavigationStack {
+        SettingsView()
+    }
+    .environment(SessionStore())
 }

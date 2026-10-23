@@ -1,0 +1,84 @@
+import Foundation
+import Observation
+
+/// 账号详情的数据与单号操作。
+///
+/// 刷新时重新拉 `overview()`，再按 uid 找到同一个账号。
+@MainActor
+@Observable
+final class AccountDetailModel {
+    private let loader = Loader<OverviewResponse>()
+
+    var toast: Toast?
+    private(set) var busy: AccountCommand?
+
+    var isLoading: Bool { loader.isLoading }
+    var error: String? { loader.error }
+    var lastUpdated: Date? { loader.lastUpdated }
+
+    /// 用最新快照里的同 uid 账号；找不到时退回列表传入的快照。
+    func current(_ fallback: Account) -> Account {
+        loader.value?.accounts.first { $0.uid == fallback.uid } ?? fallback
+    }
+
+    func load(using client: APIClient?) async {
+        guard let client else {
+            toast = Toast(kind: .failure, text: "尚未配置服务器地址")
+            return
+        }
+        await loader.load { try await client.overview() }
+    }
+
+    func perform(_ command: AccountCommand, on account: Account, using client: APIClient?) async {
+        guard let client else {
+            toast = Toast(kind: .failure, text: "尚未配置服务器地址")
+            return
+        }
+        guard busy == nil else { return }
+
+        busy = command
+        defer { busy = nil }
+
+        do {
+            let outcome = ActionOutcome(try await client.accountAction(account.uid, action: command.rawValue))
+            guard outcome.ok else {
+                toast = Toast(
+                    kind: .failure,
+                    text: "\(command.title)失败：\(outcome.message ?? "服务器拒绝了该操作")"
+                )
+                return
+            }
+            toast = Toast(kind: .success, text: outcome.message ?? "\(command.title)已完成")
+            await load(using: client)
+        } catch {
+            toast = Toast(kind: .failure, text: "\(command.title)失败：\(error.humanMessage)")
+        }
+    }
+
+    /// 移除账号。返回 true 表示服务端已确认，调用方负责关闭页面。
+    func remove(_ account: Account, using client: APIClient?) async -> Bool {
+        guard let client else {
+            toast = Toast(kind: .failure, text: "尚未配置服务器地址")
+            return false
+        }
+        guard busy == nil else { return false }
+
+        busy = .remove
+        defer { busy = nil }
+
+        do {
+            let outcome = ActionOutcome(
+                try await client.accountAction(account.uid, action: AccountCommand.remove.rawValue)
+            )
+            guard outcome.ok else {
+                toast = Toast(kind: .failure, text: "移除失败：\(outcome.message ?? "服务器拒绝了该操作")")
+                return false
+            }
+            toast = Toast(kind: .success, text: outcome.message ?? "已移除 \(account.displayName)")
+            return true
+        } catch {
+            toast = Toast(kind: .failure, text: "移除失败：\(error.humanMessage)")
+            return false
+        }
+    }
+}

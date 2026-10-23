@@ -20,9 +20,11 @@ jobs:
       - name: 生成工程
         run: xcodegen generate
 
-      - name: 选择 Xcode
+      - name: 选择最新 Xcode（需要 iOS 26 SDK）
         run: |
-          sudo xcode-select -s /Applications/Xcode.app
+          CANDIDATE=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "使用 $CANDIDATE"
+          sudo xcode-select -s "$CANDIDATE"
           xcodebuild -version
 
       - name: 运行测试

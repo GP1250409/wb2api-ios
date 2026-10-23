@@ -8,7 +8,7 @@ struct WB2APIApp: App {
         WindowGroup {
             RootView()
                 .environment(session)
-                .tint(Palette.accent)
+                .tint(Accent.primary)
         }
     }
 }

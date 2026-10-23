@@ -1,105 +1,81 @@
 import SwiftUI
-import UIKit
 
-/// 补偿：`client.compensation()` 返回自由 JSON，复用通用 JSONValue 卡片；
-/// 顶部「全部补偿」触发批量操作 `client.batch("compensation_all")`。
+/// 补偿：查看待领取补偿，并一键对所有账号执行领取。
 struct CompensationView: View {
     @Environment(SessionStore.self) private var session
-
-    private var client: APIClient? { session.client() }
-
     @State private var loader = Loader<JSONValue>()
+    @State private var isClaiming = false
+    @State private var isConfirmingClaim = false
     @State private var toast: Toast?
-    @State private var runningAll = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.m) {
-                allButton
-
-                if let error = loader.error {
-                    ErrorBanner(message: error) {
-                        Task { await reload() }
-                    }
-                    .padding(.horizontal, -Spacing.m)
-                }
-
-                if loader.isLoading && loader.value == nil {
-                    SkeletonRows(count: 4)
-                        .padding(.horizontal, -Spacing.m)
-                } else if let value = loader.value {
-                    let items = JSONValueCards.flatten(value)
-                    Text("共 \(items.count) 条")
-                        .font(Typography.caption)
-                        .foregroundStyle(Palette.textSecondary)
-                        .padding(.horizontal, Spacing.xs)
-
-                    JSONValueCards(value: value) { text in
-                        UIPasteboard.general.string = text
-                        toast = Toast(kind: .success, text: "已复制该条 JSON")
-                    }
-                } else if loader.error == nil {
-                    EmptyBox(title: "暂无补偿记录", systemImage: "arrow.uturn.backward.circle")
-                        .frame(maxWidth: .infinity, minHeight: 220)
-                }
-            }
-            .padding(Spacing.m)
-        }
-        .background(Palette.background)
+        JSONRowsView(
+            title: "补偿",
+            value: loader.value,
+            error: loader.error,
+            isLoading: loader.isLoading,
+            emptyTitle: "没有待领取补偿",
+            emptyIcon: "arrow.uturn.backward.circle",
+            reload: load
+        )
         .navigationTitle("补偿")
         .navigationBarTitleDisplayMode(.inline)
-        .refreshable { await reload() }
-        .task {
-            if loader.isEmpty { await reload() }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if isClaiming {
+                    ProgressView()
+                } else {
+                    Button("全部领取", systemImage: "hand.raised.fill", action: askClaim)
+                        .disabled(loader.value == nil)
+                }
+            }
+        }
+        .confirmationDialog(
+            "对所有账号领取补偿？",
+            isPresented: $isConfirmingClaim,
+            titleVisibility: .visible
+        ) {
+            Button("领取全部", action: claimAll)
+            Button("取消", role: .cancel, action: dismissClaimPrompt)
+        } message: {
+            Text("将调用面板的 compensation_all，可能耗时数十秒。")
         }
         .toast($toast)
+        .task { await load() }
     }
 
-    // MARK: - 全部补偿
+    // MARK: - 动作
 
-    private var allButton: some View {
-        Button {
-            Task { await runAll() }
-        } label: {
-            HStack(spacing: Spacing.s) {
-                if runningAll {
-                    ProgressView().controlSize(.small)
-                } else {
-                    Image(systemName: "arrow.uturn.forward.circle")
-                }
-                Text("全部补偿")
-                    .fontWeight(.semibold)
-                Spacer(minLength: 0)
-            }
-            .padding(Spacing.m)
-            .background(Palette.accentSoft, in: RoundedRectangle(cornerRadius: Radius.l, style: .continuous))
-            .foregroundStyle(Palette.accentDeep)
-        }
-        .buttonStyle(.plain)
-        .disabled(client == nil || runningAll)
+    private func load() async {
+        guard let client = session.client() else { return }
+        await loader.load { try await client.compensation() }
     }
 
-    private func runAll() async {
-        guard let client else {
-            toast = Toast(kind: .failure, text: "服务器地址无效，请先在设置里填写")
-            return
-        }
-        runningAll = true
-        defer { runningAll = false }
+    private func askClaim() {
+        isConfirmingClaim = true
+    }
+
+    private func dismissClaimPrompt() {
+        isConfirmingClaim = false
+    }
+
+    private func claimAll() {
+        Task { await performClaim() }
+    }
+
+    private func performClaim() async {
+        guard let client = session.client() else { return }
+        isClaiming = true
+        defer { isClaiming = false }
         do {
             _ = try await client.batch("compensation_all")
-            toast = Toast(kind: .success, text: "已发起全部补偿")
-            await reload()
+            toast = Toast(kind: .success, text: "已发起全部领取")
+            await load()
         } catch {
             toast = Toast(
                 kind: .failure,
                 text: (error as? APIError)?.errorDescription ?? error.localizedDescription
             )
         }
-    }
-
-    private func reload() async {
-        guard let client else { return }
-        await loader.load { try await client.compensation() }
     }
 }

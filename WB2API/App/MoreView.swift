@@ -1,110 +1,101 @@
 import SwiftUI
 
-/// 「更多」Tab 入口：品牌头 + 全部二级功能入口。
+/// 「更多」Tab：品牌头部 + 全部二级功能入口。
 ///
-/// 统一用 `NavigationLink { Destination() } label: { Label(...) }` 形式，
-/// 由本页的 NavigationStack 承载，不依赖外部导航状态。
+/// 导航统一用 `NavigationLink(value:)` + `navigationDestination(for:)`，
+/// 目标类型是 `MoreDestination`，全 App 只注册一次。
 struct MoreView: View {
-    private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-    }
-
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    HStack(spacing: Spacing.m) {
-                        BrandMark(size: 40)
-                        VStack(alignment: .leading, spacing: Spacing.xxs) {
-                            Text("WorkBuddy 面板")
-                                .font(Typography.title)
-                                .foregroundStyle(Palette.textPrimary)
-                            Text("v\(appVersion) · 私有部署")
-                                .font(Typography.caption)
-                                .foregroundStyle(Palette.textSecondary)
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .padding(.vertical, Spacing.s)
-                }
-                .listRowBackground(Palette.surface)
-
-                Section {
-                    NavigationLink {
-                        ModelsView()
-                    } label: {
-                        Label("模型", systemImage: "square.stack.3d.up")
-                    }
-                    .listRowBackground(Palette.surface)
-
-                    NavigationLink {
-                        LogsView()
-                    } label: {
-                        Label("日志", systemImage: "text.alignleft")
-                    }
-                    .listRowBackground(Palette.surface)
-                } header: {
-                    Text("模型与日志")
+                    MoreBrandHeader()
+                        .listRowSeparator(.hidden)
                 }
 
-                Section {
-                    NavigationLink {
-                        PackagesView()
-                    } label: {
-                        Label("礼包", systemImage: "gift")
+                Section("模型与日志") {
+                    NavigationLink(value: MoreDestination.models) {
+                        MoreEntryRow(
+                            title: "模型",
+                            subtitle: "模型目录与能力",
+                            systemImage: "square.stack.3d.up"
+                        )
                     }
-                    .listRowBackground(Palette.surface)
-
-                    NavigationLink {
-                        VouchersView()
-                    } label: {
-                        Label("券码", systemImage: "ticket")
+                    NavigationLink(value: MoreDestination.logs) {
+                        MoreEntryRow(
+                            title: "日志",
+                            subtitle: "实时日志与错误汇总",
+                            systemImage: "text.alignleft"
+                        )
                     }
-                    .listRowBackground(Palette.surface)
-
-                    NavigationLink {
-                        CompensationView()
-                    } label: {
-                        Label("补偿", systemImage: "arrow.uturn.backward.circle")
-                    }
-                    .listRowBackground(Palette.surface)
-                } header: {
-                    Text("资源")
                 }
 
-                Section {
-                    NavigationLink {
-                        ConfigView()
-                    } label: {
-                        Label("配置", systemImage: "slider.horizontal.3")
+                Section("资源") {
+                    NavigationLink(value: MoreDestination.packages) {
+                        MoreEntryRow(
+                            title: "礼包",
+                            subtitle: "按账号分组的礼包明细",
+                            systemImage: "gift"
+                        )
                     }
-                    .listRowBackground(Palette.surface)
+                    NavigationLink(value: MoreDestination.vouchers) {
+                        MoreEntryRow(
+                            title: "券码",
+                            subtitle: "可用券码一览",
+                            systemImage: "ticket"
+                        )
+                    }
+                    NavigationLink(value: MoreDestination.compensation) {
+                        MoreEntryRow(
+                            title: "补偿",
+                            subtitle: "查看并一键领取补偿",
+                            systemImage: "arrow.uturn.backward.circle"
+                        )
+                    }
+                }
 
-                    NavigationLink {
-                        LoginView()
-                    } label: {
-                        Label("登录", systemImage: "person.badge.key")
+                Section("系统") {
+                    NavigationLink(value: MoreDestination.config) {
+                        MoreEntryRow(
+                            title: "配置",
+                            subtitle: "面板全字段配置",
+                            systemImage: "slider.horizontal.3"
+                        )
                     }
-                    .listRowBackground(Palette.surface)
-
-                    NavigationLink {
-                        SettingsView()
-                    } label: {
-                        Label("设置", systemImage: "gearshape")
+                    NavigationLink(value: MoreDestination.login) {
+                        MoreEntryRow(
+                            title: "登录",
+                            subtitle: "扫码授权添加账号",
+                            systemImage: "person.badge.key"
+                        )
                     }
-                    .listRowBackground(Palette.surface)
-                } header: {
-                    Text("系统")
-                } footer: {
-                    Text("WorkBuddy2API · 账号池运维面板")
-                        .font(Typography.caption)
-                        .foregroundStyle(Palette.textTertiary)
+                    NavigationLink(value: MoreDestination.settings) {
+                        MoreEntryRow(
+                            title: "设置",
+                            subtitle: "服务器、密钥与测试连接",
+                            systemImage: "gearshape"
+                        )
+                    }
                 }
             }
-            .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
-            .background(Palette.background)
             .navigationTitle("更多")
+            .navigationDestination(for: MoreDestination.self) { destination in
+                switch destination {
+                case .models: ModelsView()
+                case .logs: LogsView()
+                case .packages: PackagesView()
+                case .vouchers: VouchersView()
+                case .compensation: CompensationView()
+                case .config: ConfigView()
+                case .login: LoginView()
+                case .settings: SettingsView()
+                }
+            }
         }
     }
+}
+
+#Preview {
+    MoreView()
+        .environment(SessionStore())
 }

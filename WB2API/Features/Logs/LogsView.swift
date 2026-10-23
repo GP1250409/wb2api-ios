@@ -1,220 +1,153 @@
 import SwiftUI
-import Foundation
 
-/// 日志：按通道过滤的实时日志流（5 秒轮询），并提供请求日志与错误汇总入口。
+/// 日志：每 5 秒自动刷新的实时流，按通道筛选，并可进入请求日志与错误汇总。
 struct LogsView: View {
     @Environment(SessionStore.self) private var session
 
-    @State private var loader = Loader<LogsResponse>()
-    @State private var channel = ""
-    @State private var isVisible = true
-
-    private var client: APIClient? { session.client() }
-
-    // MARK: - Body
+    @State private var logs = Loader<LogsResponse>()
+    @State private var channel: LogChannel = .all
+    @State private var isAutoRefreshEnabled = true
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                channelBar
-
-                Rectangle()
-                    .fill(Palette.divider)
-                    .frame(height: 1)
-
-                logList
-            }
-            .background(Palette.background)
-            .navigationTitle("日志")
-            .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    NavigationLink {
-                        RequestLogsView()
-                    } label: {
-                        Label("请求日志", systemImage: "list.bullet.rectangle")
-                    }
-
-                    NavigationLink {
-                        ErrorSummaryView()
-                    } label: {
-                        Label("错误汇总", systemImage: "exclamationmark.triangle")
-                    }
-                }
-            }
-            .refreshable { await refresh() }
-            .task { await autoRefresh() }
-            .onAppear { isVisible = true }
-            .onDisappear { isVisible = false }
-            .onChange(of: channels) { _, newValue in
-                if !channel.isEmpty && !newValue.contains(channel) {
-                    channel = ""
-                }
-            }
-        }
-    }
-
-    // MARK: - 顶部筛选
-
-    private var channelBar: some View {
-        HStack(alignment: .center, spacing: Spacing.s) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("日志流")
-                    .font(Typography.title)
-                    .foregroundStyle(Palette.textPrimary)
-                Text("每 5 秒自动刷新")
-                    .font(Typography.caption)
-                    .foregroundStyle(Palette.textTertiary)
-            }
-
-            Spacer(minLength: 0)
-
-            Picker("通道", selection: $channel) {
-                Text("全部").tag("")
-                ForEach(channels, id: \.self) { name in
-                    Text(name).tag(name)
-                }
-            }
-            .pickerStyle(.menu)
-            .tint(Palette.accent)
-            .labelsHidden()
-            .accessibilityLabel("通道筛选")
-        }
-        .padding(.horizontal, Spacing.m)
-        .padding(.vertical, Spacing.s)
-    }
-
-    // MARK: - 列表
-
-    private var logList: some View {
         List {
-            if let message = loader.error {
-                ErrorBanner(message: message) {
-                    Task { await refresh() }
+            if let warning = archiveWarning {
+                Section {
+                    Label(warning, systemImage: "archivebox")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: Spacing.s, leading: 0, bottom: 0, trailing: 0))
-                .listRowSeparator(.hidden)
             }
 
-            if let archiveError = loader.value?.archiveError, !archiveError.isEmpty {
-                Text("归档异常：\(archiveError)")
-                    .font(Typography.caption)
-                    .foregroundStyle(Palette.warning)
-                    .lineLimit(2)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: Spacing.s, leading: Spacing.m, bottom: 0, trailing: Spacing.m))
-                    .listRowSeparator(.hidden)
-            }
-
-            if loader.value == nil && loader.isLoading {
-                SkeletonRows(count: 8)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: Spacing.s, leading: 0, bottom: 0, trailing: 0))
-                    .listRowSeparator(.hidden)
-            } else if entries.isEmpty {
-                EmptyBox(
-                    title: channel.isEmpty ? "暂无日志" : "该通道暂无日志",
-                    message: "下拉刷新，或切换到其他通道",
-                    systemImage: "text.alignleft"
-                )
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            } else {
-                ForEach(entries) { entry in
-                    logRow(entry)
-                        .listRowBackground(Palette.surface)
-                        .listRowInsets(EdgeInsets(top: Spacing.xs, leading: Spacing.m, bottom: Spacing.xs, trailing: Spacing.m))
+            if let message = logs.error {
+                Section {
+                    ErrorBanner(message: message, retry: retry)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
             }
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-    }
 
-    private func logRow(_ entry: LogEntry) -> some View {
-        HStack(alignment: .top, spacing: Spacing.s) {
-            Circle()
-                .fill(channelColor(entry.ch))
-                .frame(width: 6, height: 6)
-                .padding(.top, 5)
-                .accessibilityHidden(true)
+            Section {
+                LogChannelPicker(selection: $channel)
+                    .listRowInsets(EdgeInsets(
+                        top: Metrics.s,
+                        leading: Metrics.m,
+                        bottom: Metrics.s,
+                        trailing: Metrics.m
+                    ))
+            }
 
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
-                HStack(spacing: Spacing.s) {
-                    Text(Fmt.clock(entry.ts))
-                        .font(.system(size: 12).monospacedDigit())
-                        .foregroundStyle(Palette.textSecondary)
-
-                    if let name = entry.ch, !name.isEmpty {
-                        Text(name)
-                            .font(Typography.label)
-                            .tracking(0.4)
-                            .foregroundStyle(channelColor(name))
+            Section {
+                if isInitialLoading {
+                    LoadingSkeleton(rows: 6)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                } else if visibleEntries.isEmpty {
+                    ContentUnavailableView(
+                        "暂无日志",
+                        systemImage: "text.alignleft",
+                        description: Text("该通道还没有记录")
+                    )
+                } else {
+                    ForEach(visibleEntries.indices, id: \.self) { index in
+                        LogRowView(entry: visibleEntries[index])
                     }
-
-                    Spacer(minLength: 0)
                 }
-
-                Text(entry.text ?? "—")
-                    .font(.system(size: 12, design: .monospaced))
-                    .foregroundStyle(Palette.textPrimary)
-                    .lineLimit(4)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            } header: {
+                HStack(spacing: Metrics.s) {
+                    Text("实时日志")
+                    Spacer(minLength: 0)
+                    Text(isAutoRefreshEnabled ? "5 秒自动刷新" : "已暂停")
+                        .foregroundStyle(.secondary)
+                }
+            } footer: {
+                HStack(spacing: Metrics.s) {
+                    Text("共 \(visibleEntries.count) 条")
+                    Spacer(minLength: 0)
+                    if let lastUpdated = logs.lastUpdated {
+                        Text(lastUpdated, format: .dateTime.hour().minute().second())
+                    }
+                }
+                .font(.footnote)
             }
         }
-        .padding(.vertical, Spacing.xxs)
-    }
-
-    // MARK: - 数据
-
-    private var allEntries: [LogEntry] {
-        loader.value?.entries ?? []
-    }
-
-    /// 出现过的通道，去重后最多 5 个。
-    private var channels: [String] {
-        var seen: [String] = []
-        for entry in allEntries {
-            guard let raw = entry.ch else { continue }
-            let name = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            if name.isEmpty || seen.contains(name) { continue }
-            seen.append(name)
-            if seen.count >= 5 { break }
+        .navigationTitle("日志")
+        .navigationDestination(for: LogsRoute.self) { route in
+            LogsRouteView(route: route)
         }
-        return seen
+        .refreshable { await refreshLogs() }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(autoRefreshTitle, systemImage: autoRefreshIcon, action: toggleAutoRefresh)
+                    .labelStyle(.iconOnly)
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu("更多", systemImage: "ellipsis.circle") {
+                    NavigationLink("请求日志", value: LogsRoute.requestLogs)
+                    NavigationLink("错误汇总", value: LogsRoute.errorSummary)
+                    Divider()
+                    Button("立即刷新", systemImage: "arrow.clockwise", action: refreshNow)
+                }
+                .labelStyle(.iconOnly)
+            }
+        }
+        .task(id: isAutoRefreshEnabled) { await autoRefresh() }
     }
 
-    private var entries: [LogEntry] {
-        guard !channel.isEmpty else { return allEntries }
-        return allEntries.filter { $0.ch == channel }
+    private var isInitialLoading: Bool {
+        logs.value == nil && logs.error == nil
     }
 
-    private func channelColor(_ name: String?) -> Color {
-        guard let raw = name else { return Palette.textTertiary }
-        let text = raw.lowercased()
-        if text.contains("server") { return Palette.success }
-        if text.contains("panel") { return Palette.info }
-        if text.contains("upstream") { return Palette.warning }
-        if text.contains("error") || text.contains("fail") { return Palette.danger }
-        return Palette.textTertiary
+    private var archiveWarning: String? {
+        guard let text = logs.value?.archiveError, !text.isEmpty else { return nil }
+        return text
     }
 
-    private func refresh() async {
-        guard let client else { return }
-        await loader.load { try await client.logs() }
+    /// 最新一条在最上面，符合「实时日志」的阅读顺序。
+    private var visibleEntries: [LogEntry] {
+        let entries = logs.value?.entries ?? []
+        let filtered = channel == .all ? entries : entries.filter { channel.matches($0.ch) }
+        return Array(filtered.reversed())
     }
 
-    /// 5 秒轮询；视图销毁时随 `.task` 一起取消。
+    private var autoRefreshTitle: String {
+        isAutoRefreshEnabled ? "暂停自动刷新" : "继续自动刷新"
+    }
+
+    private var autoRefreshIcon: String {
+        isAutoRefreshEnabled ? "pause.circle" : "play.circle"
+    }
+
+    // MARK: - 加载
+
+    private func refreshNow() {
+        Task { await refreshLogs() }
+    }
+
+    private func retry() {
+        Task { await refreshLogs() }
+    }
+
+    private func toggleAutoRefresh() {
+        isAutoRefreshEnabled.toggle()
+    }
+
+    private func refreshLogs() async {
+        guard let client = session.client() else { return }
+        await logs.load { try await client.logs() }
+    }
+
+    /// 5 秒一轮；`.task(id:)` 在暂停或离开页面时取消，恢复时立刻补一次。
     private func autoRefresh() async {
-        await refresh()
+        guard isAutoRefreshEnabled else { return }
+        await refreshLogs()
         while !Task.isCancelled {
-            try? await Task.sleep(for: .seconds(5))
-            if Task.isCancelled { break }
-            if isVisible {
-                await refresh()
+            do {
+                try await Task.sleep(for: .seconds(5))
+            } catch {
+                return
             }
+            await refreshLogs()
         }
     }
 }
