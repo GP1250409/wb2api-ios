@@ -34,11 +34,14 @@ struct OverviewView: View {
                         OverviewStatsGrid(digest: digest)
                             .staggeredAppear(index: 2)
 
-                        BatchActionsRow(running: model.runningBatch, onRun: runBatch)
+                        ModelLocksCard(locks: model.overview?.modelLocks ?? [])
                             .staggeredAppear(index: 3)
 
-                        AccountPreviewList(accounts: model.previewAccounts)
+                        BatchActionsRow(running: model.runningBatch, onRun: runBatch)
                             .staggeredAppear(index: 4)
+
+                        AccountPreviewList(accounts: model.previewAccounts)
+                            .staggeredAppear(index: 5)
                     } else if model.isLoading {
                         LoadingSkeleton(rows: 5)
                     } else if model.overview != nil {

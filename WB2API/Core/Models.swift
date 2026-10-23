@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 // MARK: - 通用 JSON 值（配置等自由结构）
 
@@ -164,10 +165,57 @@ struct OverviewResponse: Codable, Sendable {
     let inFlightFull: Int?
     let balanceRefreshSec: Int?
     let balanceRefreshedAt: String?
+    let modelLocksRaw: [ModelLock]?
 
     var isInFlightFull: Bool { (inFlightFull ?? 0) > 0 }
     var total: Int { accounts.count }
     var totalCredits: Int { accounts.compactMap(\.credits).reduce(0, +) }
+}
+
+// MARK: - 模型锁池
+
+/// 哪些模型不能用、锁了几个号、还要锁多久。
+/// 后端已按「整池不可用 → 没号可用 → 部分限流」排序。
+struct ModelLock: Codable, Identifiable, Sendable {
+    var id: String { (model ?? "") + (realm ?? "") }
+    let model: String?
+    let realm: String?
+    let total: Int?
+    let servable: Int?
+    let locked: Int?
+    /// locked / starved / partial
+    let state: String?
+    let unlockAt: String?
+    let fullyUnlockAt: String?
+
+    var realmLabel: String {
+        switch realm {
+        case "global": return "国际版"
+        case "cn": return "国内版"
+        default: return realm ?? "—"
+        }
+    }
+
+    var stateLabel: String {
+        switch state {
+        case "locked": return "整池不可用"
+        case "starved": return "没号可用"
+        case "partial": return "部分限流"
+        default: return state ?? "—"
+        }
+    }
+
+    var stateTint: Color {
+        switch state {
+        case "locked": return .red
+        case "starved", "partial": return .orange
+        default: return .secondary
+        }
+    }
+}
+
+extension OverviewResponse {
+    var modelLocks: [ModelLock] { modelLocksRaw ?? [] }
 }
 
 // MARK: - 模型
