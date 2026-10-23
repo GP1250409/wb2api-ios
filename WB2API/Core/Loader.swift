@@ -19,7 +19,12 @@ final class Loader<Value> {
             value = try await operation()
             error = nil
             lastUpdated = Date()
+        } catch is CancellationError {
+            // 下拉刷新 / 页面切换会取消进行中的请求，不是真错误
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            // 同上：URLSession 的取消错误不该弹给用户
         } catch {
+            // 已有数据时保留旧值，只更新错误提示（避免刷新失败把页面清空）
             self.error = (error as? APIError)?.errorDescription ?? error.localizedDescription
         }
     }

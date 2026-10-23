@@ -430,9 +430,9 @@ struct PackagesResponse: Codable, Sendable {
 // MARK: - 登录
 
 struct LoginRegion: Codable, Identifiable, Sendable {
-    var id: String { key ?? UUID().uuidString }
-    let key: String?
-    let label: String?
+    var id: String { code ?? UUID().uuidString }
+    let code: String?
+    let name: String?
 }
 
 struct LoginRegionsResponse: Codable, Sendable {

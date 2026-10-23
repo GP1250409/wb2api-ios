@@ -6,8 +6,8 @@ import SwiftUI
 struct LoginView: View {
     @Environment(SessionStore.self) private var session
 
-    @State private var regionsLoader = Loader<LoginRegionsResponse>()
-    @State private var regionKey = ""
+    /// 登录域：国内版 cn / 国际版 global
+    @State private var realm = "cn"
     @State private var startResponse: LoginStartResponse?
     @State private var pollResult: LoginPollResponse?
     @State private var isStarting = false
@@ -15,38 +15,26 @@ struct LoginView: View {
     @State private var pollNote: String?
     @State private var timedOut = false
 
-    private var regions: [LoginRegion] {
-        regionsLoader.value?.regions ?? []
-    }
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Metrics.l) {
                 VStack(alignment: .leading, spacing: Metrics.m) {
-                    SectionHeader(title: "选择区域", subtitle: "登录走所选区域的面板接口")
+                    SectionHeader(title: "登录区域", subtitle: "选择账号所属版本，授权页会跳到对应站点")
 
-                    if regionsLoader.isLoading && regions.isEmpty {
-                        HStack(spacing: Metrics.s) {
-                            ProgressView()
-                            Text("加载区域…")
-                                .foregroundStyle(.secondary)
-                        }
-                    } else if let error = regionsLoader.error, regions.isEmpty {
-                        ErrorBanner(message: error, retry: retryRegions)
-                    } else if regions.isEmpty {
-                        Label("没有可用区域", systemImage: "globe")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        Picker("登录区域", selection: $regionKey) {
-                            ForEach(regions) { region in
-                                Text(region.label ?? region.key ?? "—")
-                                    .tag(region.key ?? "")
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        .accessibilityLabel("登录区域")
+                    Picker("登录区域", selection: $realm) {
+                        Text("国内版").tag("cn")
+                        Text("国际版").tag("global")
                     }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    .accessibilityLabel("登录区域")
+
+                    Label(
+                        realm == "cn" ? "跳转 copilot.tencent.com 登录" : "跳转 workbuddy.ai 登录",
+                        systemImage: realm == "cn" ? "building.2" : "globe.asia.australia"
+                    )
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .glassCard()
@@ -67,7 +55,7 @@ struct LoginView: View {
                 .buttonStyle(.glassProminent)
                 .controlSize(.large)
                 .frame(minHeight: Metrics.minTap)
-                .disabled(regionKey.isEmpty || isStarting)
+                .disabled(isStarting)
 
                 if let startResponse, let urlString = startResponse.url, !urlString.isEmpty {
                     LoginLinkCard(realm: startResponse.realm, urlString: urlString)
@@ -115,24 +103,8 @@ struct LoginView: View {
         .background(.background)
         .navigationTitle("登录")
         .navigationBarTitleDisplayMode(.inline)
-        .task { await loadRegions() }
         .task(id: startResponse?.state) { await pollUntilDone() }
         .sensoryFeedback(.success, trigger: pollResult?.uid)
-    }
-
-    // MARK: - 区域
-
-    private func loadRegions() async {
-        guard let client = session.client() else { return }
-        await regionsLoader.load { try await client.loginRegions() }
-        if regionKey.isEmpty, let first = regions.first, let key = first.key {
-            regionKey = key
-        }
-    }
-
-    private func retryRegions() {
-        regionsLoader.clearError()
-        Task { await loadRegions() }
     }
 
     // MARK: - 发起登录
@@ -142,7 +114,7 @@ struct LoginView: View {
     }
 
     private func performStart() async {
-        guard let client = session.client(), !regionKey.isEmpty else { return }
+        guard let client = session.client() else { return }
         isStarting = true
         errorText = nil
         pollNote = nil
@@ -152,7 +124,7 @@ struct LoginView: View {
         defer { isStarting = false }
 
         do {
-            startResponse = try await client.loginStart(realm: regionKey)
+            startResponse = try await client.loginStart(realm: realm)
         } catch {
             errorText = (error as? APIError)?.errorDescription ?? error.localizedDescription
         }
