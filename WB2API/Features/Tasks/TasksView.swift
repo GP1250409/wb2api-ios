@@ -46,7 +46,7 @@ struct TasksView: View {
                             onToggleTask: toggle(_:),
                             onToggleGroup: toggleGroup(_:select:),
                             onRunOne: runSingle(_:),
-                            onAction: perform(_:on:)
+                            onAction: { task, action in perform(action, on: task) }
                         )
                         JobListView(jobs: jobs.value)
                     }
