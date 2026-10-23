@@ -6,70 +6,17 @@ struct AccountsView: View {
     @State private var model = AccountsModel()
     @Namespace private var zoomNamespace
 
-    private let rowInsets = EdgeInsets(
-        top: Metrics.xs,
-        leading: Metrics.m,
-        bottom: Metrics.xs,
-        trailing: Metrics.m
-    )
-
     var body: some View {
         @Bindable var model = model
 
         NavigationStack {
-            List {
-                if let message = model.error {
-                    ErrorBanner(message: message) {
-                        reload()
-                    }
-                    .listRowInsets(rowInsets)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                }
-
-                if model.isLoading && model.accounts.isEmpty {
-                    LoadingSkeleton(rows: 6)
-                        .listRowInsets(rowInsets)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                } else if model.filtered.isEmpty {
-                    AccountsEmptyState(
-                        isSearching: model.isSearching,
-                        query: model.query,
-                        title: model.emptyTitle,
-                        systemImage: model.emptyIcon,
-                        message: model.emptyMessage,
-                        isFiltered: model.filter != .all
-                    ) {
-                        model.filter = .all
-                    }
-                } else {
-                    ForEach(model.filtered) { account in
-                        AccountListRow(
-                            account: account,
-                            isBusy: model.busyUIDs.contains(account.uid),
-                            namespace: zoomNamespace
-                        ) { command in
-                            perform(command, on: account)
-                        }
-                        .listRowInsets(rowInsets)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                    }
-                }
-            }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .background {
-                LinearGradient(
-                    colors: [Accent.soft.opacity(0.8), Color.clear],
-                    startPoint: .top,
-                    endPoint: .center
-                )
-                .ignoresSafeArea()
-            }
-            .background(.background)
-            .navigationTitle("账号")
+            AccountListSection(
+                model: model,
+                zoomNamespace: zoomNamespace,
+                onReload: { reload() },
+                onCommand: { perform($0, on: $1) },
+                onResetFilter: { model.filter = .all }
+            )
             .searchable(
                 text: $model.query,
                 placement: .navigationBarDrawer(displayMode: .always),
@@ -84,34 +31,7 @@ struct AccountsView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        ForEach(AccountFilter.allCases) { option in
-                            Button {
-                                model.filter = option
-                            } label: {
-                                Label(
-                                    option.title(count: model.count(for: option)),
-                                    systemImage: option == model.filter ? "checkmark" : option.symbol
-                                )
-                            }
-                        }
-
-                        if model.filter != .all {
-                            Divider()
-                            Button("显示全部", systemImage: "arrow.uturn.backward") {
-                                model.filter = .all
-                            }
-                        }
-                    } label: {
-                        Label(
-                            "筛选",
-                            systemImage: model.filter.isActive
-                                ? "line.3.horizontal.decrease.circle.fill"
-                                : "line.3.horizontal.decrease.circle"
-                        )
-                    }
-                    .labelStyle(.iconOnly)
-                    .accessibilityLabel("筛选账号")
+                    filterMenu
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("刷新", systemImage: "arrow.clockwise", action: reload)
@@ -124,6 +44,37 @@ struct AccountsView: View {
                 Task { await model.refreshIfStale(after: 3, using: session.client()) }
             }
         }
+    }
+
+    private var filterMenu: some View {
+        Menu {
+            ForEach(AccountFilter.allCases) { option in
+                Button {
+                    model.filter = option
+                } label: {
+                    Label(
+                        option.title(count: model.count(for: option)),
+                        systemImage: option == model.filter ? "checkmark" : option.symbol
+                    )
+                }
+            }
+
+            if model.filter != .all {
+                Divider()
+                Button("显示全部", systemImage: "arrow.uturn.backward") {
+                    model.filter = .all
+                }
+            }
+        } label: {
+            Label(
+                "筛选",
+                systemImage: model.filter.isActive
+                    ? "line.3.horizontal.decrease.circle.fill"
+                    : "line.3.horizontal.decrease.circle"
+            )
+        }
+        .labelStyle(.iconOnly)
+        .accessibilityLabel("筛选账号")
     }
 
     private func reload() {
