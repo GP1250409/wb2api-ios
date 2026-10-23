@@ -32,6 +32,13 @@ final class FormatterTests: XCTestCase {
         XCTAssertNotNil(Fmt.parse("2026-10-23T19:30:06+08:00"))
         XCTAssertNotNil(Fmt.parse("2026-10-23T19:30:06.123Z"))
         XCTAssertNotNil(Fmt.parse("2026-10-23 19:30:06"))
+        // 后端纳秒时间戳：ISO8601DateFormatter 只认 3 位小数，必须先截断
+        XCTAssertNotNil(Fmt.parse("2026-10-24T03:12:12.930859243+08:00"))
+        XCTAssertNotNil(Fmt.parse("2026-10-23T21:26:19.577534335+08:00"))
+        XCTAssertEqual(
+            Fmt.trimFraction("2026-10-24T03:12:12.930859243+08:00"),
+            "2026-10-24T03:12:12.930+08:00"
+        )
         XCTAssertNil(Fmt.parse(""))
         XCTAssertNil(Fmt.parse(nil))
     }

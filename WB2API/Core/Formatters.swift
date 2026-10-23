@@ -44,19 +44,31 @@ enum Fmt {
     /// 后端时间可能是 RFC3339（带时区/毫秒）或 "2006-01-02 15:04:05"。
     static func parse(_ raw: String?) -> Date? {
         guard let raw, !raw.isEmpty else { return nil }
+        // 后端时间戳带 9 位纳秒（2026-10-24T03:12:12.930859243+08:00），
+        // ISO8601DateFormatter 只认 3 位小数——先截断，否则解析失败、倒计时不显示。
+        let normalized = Self.trimFraction(raw)
         let iso = ISO8601DateFormatter()
         iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = iso.date(from: raw) { return d }
+        if let d = iso.date(from: normalized) { return d }
         iso.formatOptions = [.withInternetDateTime]
-        if let d = iso.date(from: raw) { return d }
+        if let d = iso.date(from: normalized) { return d }
         let df = DateFormatter()
         df.locale = Locale(identifier: "en_US_POSIX")
         df.timeZone = TimeZone(secondsFromGMT: 8 * 3600)
         for pattern in ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd"] {
             df.dateFormat = pattern
-            if let d = df.date(from: raw) { return d }
+            if let d = df.date(from: normalized) { return d }
         }
         return nil
+    }
+
+    /// 把小数秒截到 3 位：`.930859243` → `.930`。
+    static func trimFraction(_ raw: String) -> String {
+        raw.replacingOccurrences(
+            of: #"\.(\d{3})\d+"#,
+            with: ".$1",
+            options: .regularExpression
+        )
     }
 
     /// 相对时间：刚刚 / 3 分钟前 / 2 小时前 / 昨天 / 10-21
