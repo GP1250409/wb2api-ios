@@ -68,6 +68,13 @@ jobs:
       - name: 生成工程
         run: xcodegen generate
 
+      - name: 选择最新 Xcode（需要 iOS 26 SDK）
+        run: |
+          CANDIDATE=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "使用 $CANDIDATE"
+          sudo xcode-select -s "$CANDIDATE"
+          xcodebuild -version
+
       - name: 编译真机包（未签名）
         run: |
           set -o pipefail
