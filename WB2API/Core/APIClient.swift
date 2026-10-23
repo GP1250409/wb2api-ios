@@ -207,7 +207,7 @@ extension APIClient {
         try await get("\(Self.apiPrefix)/packages")
     }
 
-    func vouchers() async throws -> JSONValue {
+    func vouchers() async throws -> VoucherResponse {
         try await get("\(Self.apiPrefix)/school/vouchers")
     }
 
