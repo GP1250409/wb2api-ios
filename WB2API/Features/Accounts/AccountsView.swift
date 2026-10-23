@@ -4,16 +4,18 @@ import SwiftUI
 struct AccountsView: View {
     @Environment(SessionStore.self) private var session
     @State private var model = AccountsModel()
+    @State private var path = NavigationPath()
     @Namespace private var zoomNamespace
 
     var body: some View {
         @Bindable var model = model
 
-        NavigationStack {
+        NavigationStack(path: $path) {
             AccountListSection(
                 model: model,
                 zoomNamespace: zoomNamespace,
                 onReload: { reload() },
+                onOpen: { path.append($0) },
                 onCommand: { perform($0, on: $1) },
                 onResetFilter: { model.filter = .all }
             )

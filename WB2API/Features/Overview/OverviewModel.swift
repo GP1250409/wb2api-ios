@@ -14,15 +14,12 @@ final class OverviewModel {
     private(set) var runningBatch: BatchAction?
 
     var overview: OverviewResponse? { loader.value }
+    /// usage 快照（今日 tokens 与用量趋势共用）
+    var usage: UsageSnapshot? { usageLoader.value }
     var digest: OverviewDigest? { loader.value.map { OverviewDigest(overview: $0, usage: usageLoader.value) } }
     var isLoading: Bool { loader.isLoading }
     var error: String? { loader.error }
     var lastUpdated: Date? { loader.lastUpdated }
-
-    /// 概览只展示积分最高的前 5 个账号（顺序沿用面板返回顺序）。
-    var previewAccounts: [Account] {
-        Array((loader.value?.accounts ?? []).prefix(5))
-    }
 
     // MARK: 读取
 

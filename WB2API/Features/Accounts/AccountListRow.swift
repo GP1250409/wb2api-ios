@@ -5,14 +5,18 @@ struct AccountListRow: View {
     let account: Account
     var isBusy: Bool = false
     let namespace: Namespace.ID
+    var onOpen: () -> Void
     let onAction: (AccountCommand) -> Void
 
     var body: some View {
-        NavigationLink(value: account) {
+        // 用 Button 而不是 NavigationLink：List 里的 NavigationLink 会自带 chevron，
+        // 和概览「账号池」的卡片样式不一致。点按行为与 zoom 转场保持不变。
+        Button(action: onOpen) {
             AccountRowView(account: account, isBusy: isBusy)
                 .padding(Metrics.m - Metrics.xs)
                 .glassInteractive(cornerRadius: Metrics.radiusM)
         }
+        .buttonStyle(.plain)
         .matchedTransitionSource(id: account.uid, in: namespace)
         .scrollTransition(.interactive, axis: .vertical) { content, phase in
             content

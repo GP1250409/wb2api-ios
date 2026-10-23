@@ -5,13 +5,15 @@ struct AccountListSection: View {
     let model: AccountsModel
     let zoomNamespace: Namespace.ID
     var onReload: () -> Void
+    var onOpen: (Account) -> Void
     var onCommand: (AccountCommand, Account) -> Void
     var onResetFilter: () -> Void = {}
 
+    /// 上下留 0：卡片间距交给 List 的 rowSpacing，和概览「账号池」一致。
     private let rowInsets = EdgeInsets(
-        top: Metrics.xs,
+        top: 0,
         leading: Metrics.m,
-        bottom: Metrics.xs,
+        bottom: 0,
         trailing: Metrics.m
     )
 
@@ -45,7 +47,8 @@ struct AccountListSection: View {
                     AccountListRow(
                         account: account,
                         isBusy: model.busyUIDs.contains(account.uid),
-                        namespace: zoomNamespace
+                        namespace: zoomNamespace,
+                        onOpen: { onOpen(account) }
                     ) { command in
                         onCommand(command, account)
                     }
@@ -56,6 +59,7 @@ struct AccountListSection: View {
             }
         }
         .listStyle(.plain)
+        .listRowSpacing(Metrics.s)
         .scrollContentBackground(.hidden)
         .background {
             LinearGradient(

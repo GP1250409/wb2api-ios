@@ -37,10 +37,10 @@ struct OverviewView: View {
                         ModelLocksCard(locks: model.overview?.modelLocks ?? [])
                             .staggeredAppear(index: 3)
 
-                        BatchActionsRow(running: model.runningBatch, onRun: runBatch)
+                        UsageTrendCard(usage: model.usage)
                             .staggeredAppear(index: 4)
 
-                        AccountPreviewList(accounts: model.previewAccounts)
+                        BatchActionsRow(running: model.runningBatch, onRun: runBatch)
                             .staggeredAppear(index: 5)
                     } else if model.isLoading {
                         LoadingSkeleton(rows: 5)
