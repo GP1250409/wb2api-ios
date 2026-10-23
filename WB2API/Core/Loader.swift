@@ -13,17 +13,17 @@ final class Loader<Value> {
     var isEmpty: Bool { value == nil && error == nil }
 
     func load(_ operation: @escaping @MainActor () async throws -> Value) async {
+        // 同一时刻只跑一轮：下拉刷新撞上进行中的自动刷新时不应并发重复请求
+        guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         do {
             value = try await operation()
             error = nil
             lastUpdated = Date()
-        } catch is CancellationError {
-            // 下拉刷新 / 页面切换会取消进行中的请求，不是真错误
-        } catch let urlError as URLError where urlError.code == .cancelled {
-            // 同上：URLSession 的取消错误不该弹给用户
         } catch {
+            // 下拉刷新 / 页面切换会取消进行中的请求，这不是真错误，别弹给用户
+            guard !error.isCancellation else { return }
             // 已有数据时保留旧值，只更新错误提示（避免刷新失败把页面清空）
             self.error = (error as? APIError)?.errorDescription ?? error.localizedDescription
         }

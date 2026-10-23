@@ -33,4 +33,16 @@ extension Error {
     var humanMessage: String {
         (self as? APIError)?.errorDescription ?? localizedDescription
     }
+
+    /// 是否是「任务被取消」而非真实失败。
+    ///
+    /// 下拉刷新会取消上一轮请求，SwiftUI 在页面切换时也会取消 `.task`，
+    /// 这些都不该弹错误提示。注意 URLSession 抛的是 `URLError(.cancelled)`，
+    /// 但经过 `NSError` 桥接后要按 domain + code 判定才稳。
+    var isCancellation: Bool {
+        if self is CancellationError { return true }
+        if let urlError = self as? URLError, urlError.code == .cancelled { return true }
+        let nsError = self as NSError
+        return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
+    }
 }

@@ -78,7 +78,9 @@ struct APIClient: Sendable {
         do {
             (data, response) = try await session.data(for: req)
         } catch {
-            throw APIError.transport(error.localizedDescription)
+            // 取消必须原样抛出：包成 transport 后上层就认不出来了，会误报「cancelled」
+            if error.isCancellation { throw error }
+            throw APIError.transport(error.humanMessage)
         }
         guard let http = response as? HTTPURLResponse else {
             throw APIError.transport("无 HTTP 响应")
