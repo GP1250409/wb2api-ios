@@ -19,7 +19,7 @@ enum Fmt {
         guard let value else { return "—" }
         switch value {
         case 1_000_000...: return String(format: "%.1fM", Double(value) / 1_000_000)
-        case 10_000...: return String(format: "%.1fk", Double(value) / 1000)
+        case 1_000...: return String(format: "%.1fk", Double(value) / 1000)
         default: return "\(value)"
         }
     }

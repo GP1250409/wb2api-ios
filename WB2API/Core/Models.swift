@@ -149,7 +149,9 @@ struct StatusResponse: Codable, Sendable {
     let healthy: Int?
     let cooling: Int?
     let disabled: Int?
-    let inFlightFull: Bool?
+    /// 后端返回整数计数（0 表示未满）
+    let inFlightFull: Int?
+    var isInFlightFull: Bool { (inFlightFull ?? 0) > 0 }
 }
 
 // MARK: - 概览
@@ -159,7 +161,7 @@ struct OverviewResponse: Codable, Sendable {
     let healthy: Int?
     let cooling: Int?
     let disabled: Int?
-    let inFlightFull: Bool?
+    let inFlightFull: Int?
     let balanceRefreshSec: Int?
     let balanceRefreshedAt: String?
 
@@ -280,8 +282,9 @@ struct UsageGroup: Codable, Identifiable, Sendable {
 }
 
 struct UsagePoint: Codable, Identifiable, Sendable {
-    var id: String { "\(t ?? 0)-\(key ?? "")" }
-    let t: Int?
+    var id: String { "\(t ?? "")-\(key ?? "")" }
+    /// 小时桶标识，如 "2026-10-20T20"
+    let t: String?
     let key: String?
     let requests: Int?
     let tokens: Int?
