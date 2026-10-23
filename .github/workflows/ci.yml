@@ -28,10 +28,18 @@ jobs:
       - name: 运行测试
         run: |
           set -o pipefail
+          # runner 的可用模拟器随 Xcode 版本变化，动态探测，失败时列出全部设备辅助排查
+          DEST=$(xcrun simctl list devices available | grep -m1 -E "iPhone" | sed -E 's/^[[:space:]]*([^(]+) \(([0-9A-F-]+)\).*/\1/')
+          if [ -z "$DEST" ]; then
+            echo "无可用模拟器，设备列表："
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "使用模拟器: $DEST"
           xcodebuild test \
             -project WB2API.xcodeproj \
             -scheme WB2API \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS Simulator,name=$DEST" \
             -derivedDataPath .build \
             CODE_SIGNING_ALLOWED=NO \
             | tee /tmp/test.log | tail -60
