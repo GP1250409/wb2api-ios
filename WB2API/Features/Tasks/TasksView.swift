@@ -31,6 +31,7 @@ struct TasksView: View {
                             concurrency: queue.value?.conc,
                             startedAt: queue.value?.startedAt
                         )
+                        QueueItemsCard(items: queue.value?.items ?? [])
                         QueueActionsRow(
                             isScanning: isScanning,
                             isRunning: isRunning,
@@ -233,7 +234,8 @@ struct TasksView: View {
             }
             guard !runner.isRunning else { return }
             await runner.run(tasks, client: client)
-            selected.removeAll()
+            // 只清掉真的跑完的；中途停止时没跑的保留勾选，方便继续
+            selected.subtract(runner.finishedIDs)
             let ok = runner.successCount
             let failed = runner.failureCount
             toast = Toast(

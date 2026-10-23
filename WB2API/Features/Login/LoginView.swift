@@ -15,6 +15,13 @@ struct LoginView: View {
     @State private var pollNote: String?
     @State private var timedOut = false
 
+    // API Key 直加（面板 /accounts/add_apikey）
+    @State private var apiKeyInput = ""
+    @State private var apiKeyNickname = ""
+    @State private var isAddingKey = false
+    @State private var keyMessage: String?
+    @State private var keyMessageIsError = false
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Metrics.l) {
@@ -94,6 +101,8 @@ struct LoginView: View {
                     .glassCard()
                 }
 
+                apiKeyCard
+
                 if let errorText {
                     ErrorBanner(message: errorText, retry: start)
                 }
@@ -105,6 +114,85 @@ struct LoginView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: startResponse?.state) { await pollUntilDone() }
         .sensoryFeedback(.success, trigger: pollResult?.uid)
+    }
+
+    // MARK: - API Key 直加
+
+    private var apiKeyCard: some View {
+        VStack(alignment: .leading, spacing: Metrics.m) {
+            SectionHeader(title: "用 API Key 添加", subtitle: "ck_ / pt_ 开头的静态 Key，后端会先探测额度")
+
+            SecureField("ck_… 或 pt_…", text: $apiKeyInput)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .font(.callout.monospaced())
+                .padding(Metrics.s)
+                .background(.quaternary.opacity(0.4), in: .rect(cornerRadius: Metrics.radiusS))
+                .accessibilityLabel("API Key")
+
+            TextField("昵称（可选）", text: $apiKeyNickname)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .font(.callout)
+                .padding(Metrics.s)
+                .background(.quaternary.opacity(0.4), in: .rect(cornerRadius: Metrics.radiusS))
+
+            Button(action: addAPIKey) {
+                Group {
+                    if isAddingKey {
+                        ProgressView()
+                    } else {
+                        Label("添加账号", systemImage: "key.fill")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .controlSize(.large)
+            .disabled(apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isAddingKey)
+
+            if let keyMessage {
+                Label(keyMessage, systemImage: keyMessageIsError ? "exclamationmark.circle.fill" : "checkmark.circle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(keyMessageIsError ? Color.red : Color.green)
+                    .lineLimit(3)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCard()
+    }
+
+    private func addAPIKey() {
+        Task {
+            guard let client = session.client() else { return }
+            isAddingKey = true
+            defer { isAddingKey = false }
+            let token = apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)
+            let nickname = apiKeyNickname.trimmingCharacters(in: .whitespacesAndNewlines)
+            do {
+                let raw = try await client.addAPIKey(
+                    accessToken: token,
+                    nickname: nickname.isEmpty ? nil : nickname,
+                    uid: nil
+                )
+                let outcome = ActionOutcome(raw)
+                guard outcome.ok else {
+                    keyMessage = outcome.message ?? "添加失败"
+                    keyMessageIsError = true
+                    return
+                }
+                let name = raw.objectValue?["nickname"]?.stringValue
+                    ?? raw.objectValue?["uid"]?.stringValue
+                    ?? "账号"
+                keyMessage = "已添加 \(name)"
+                keyMessageIsError = false
+                apiKeyInput = ""
+                apiKeyNickname = ""
+            } catch {
+                keyMessage = error.humanMessage
+                keyMessageIsError = true
+            }
+        }
     }
 
     // MARK: - 发起登录

@@ -18,6 +18,8 @@ final class TaskRunController {
     private(set) var isRunning = false
     private(set) var total = 0
     private(set) var finishedCount = 0
+    /// 真正跑完的任务 id（停止后用来只清掉已完成的选择）
+    private(set) var finishedIDs: Set<String> = []
 
     /// 账号并发数（后端 per-account 锁允许的最大并行度）
     private let accountConcurrency = 2
@@ -42,6 +44,7 @@ final class TaskRunController {
         isRunning = true
         stopRequested = false
         states = [:]
+        finishedIDs = []
         finishedCount = 0
         total = tasks.count
 
@@ -67,12 +70,17 @@ final class TaskRunController {
                 for await results in group {
                     for result in results where !result.state.isCancelled {
                         states[result.taskID] = result.state
+                        finishedIDs.insert(result.taskID)
                         finishedCount += 1
                     }
                 }
             }
         }
 
+        // 被停止时，没轮到跑的任务不能一直挂着「执行中」
+        for (id, state) in states where state == .running {
+            states[id] = nil
+        }
         isRunning = false
     }
 

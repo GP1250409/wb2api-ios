@@ -68,7 +68,7 @@ struct OverviewView: View {
             }
             .background(.background)
             .refreshable {
-                await model.load(using: session.client())
+                await model.load(using: session.client(), syncBalance: true)
             }
             .navigationDestination(for: Account.self) { account in
                 AccountDetailView(account: account)
@@ -82,7 +82,7 @@ struct OverviewView: View {
     }
 
     private func reload() {
-        Task { await model.load(using: session.client()) }
+        Task { await model.load(using: session.client(), syncBalance: true) }
     }
 
     private func runBatch(_ action: BatchAction) {

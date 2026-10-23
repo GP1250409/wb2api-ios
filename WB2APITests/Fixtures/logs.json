@@ -149,7 +149,7 @@
   {
    "ts": "2026-10-23T19:31:23.263541753+08:00",
    "ch": "chat",
-   "text": "| #005 | 19:31:23 | cn:kimi-k2.6               | sync | 200 | 账号02(d9300901)  | TTFB=-        | tok=4      | -           | cache=0%     | total=1.0s | prep=0ms do=839ms"
+   "text": "| #005 | 19:31:23 | cn:kimi-k2.6               | sync | 200 | 账号03(d9300901)  | TTFB=-        | tok=4      | -           | cache=0%     | total=1.0s | prep=0ms do=839ms"
   },
   {
    "ts": "2026-10-23T19:31:39.992198587+08:00",
@@ -234,17 +234,17 @@
   {
    "ts": "2026-10-23T19:33:28.372819957+08:00",
    "ch": "sys",
-   "text": "ERR: [upstream] chat_stream acct=账号03(9d9b656c): transport error: Post \"https://copilot.tencent.com/v2/chat/completions\": context canceled"
+   "text": "ERR: [upstream] chat_stream acct=账号02(9d9b656c): transport error: Post \"https://copilot.tencent.com/v2/chat/completions\": context canceled"
   },
   {
    "ts": "2026-10-23T19:33:28.373001451+08:00",
    "ch": "chat",
-   "text": "| #014 | 19:33:28 | cn:glm-5.3-flash           | stream | 503 | 账号03(9d9b656c)     | TTFB=-        | tok=-      | -           | cache=-      | total=19.6s | prep=36ms do=19580ms"
+   "text": "| #014 | 19:33:28 | cn:glm-5.3-flash           | stream | 503 | 账号02(9d9b656c)     | TTFB=-        | tok=-      | -           | cache=-      | total=19.6s | prep=36ms do=19580ms"
   },
   {
    "ts": "2026-10-23T19:33:50.682827676+08:00",
    "ch": "chat",
-   "text": "| #015 | 19:33:50 | cn:glm-5.3-flash           | stream | 200 | 账号03(9d9b656c)     | TTFB=3406ms   | tok=212 think=86 | 77.6tok/s   | cache=99%    | total=6.1s | prep=37ms do=3328ms"
+   "text": "| #015 | 19:33:50 | cn:glm-5.3-flash           | stream | 200 | 账号02(9d9b656c)     | TTFB=3406ms   | tok=212 think=86 | 77.6tok/s   | cache=99%    | total=6.1s | prep=37ms do=3328ms"
   },
   {
    "ts": "2026-10-23T19:33:53.423926553+08:00",
@@ -254,22 +254,22 @@
   {
    "ts": "2026-10-23T19:34:00.73167697+08:00",
    "ch": "sys",
-   "text": "WARN: [continue] acct=账号03(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
+   "text": "WARN: [continue] acct=账号02(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
   },
   {
    "ts": "2026-10-23T19:34:00.736803554+08:00",
    "ch": "chat",
-   "text": "| #016 | 19:34:00 | cn:glm-5.3-flash           | stream | 200 | 账号03(9d9b656c)     | TTFB=4827ms   | tok=-      | -           | cache=-      | total=4.8s | prep=34ms do=4759ms"
+   "text": "| #016 | 19:34:00 | cn:glm-5.3-flash           | stream | 200 | 账号02(9d9b656c)     | TTFB=4827ms   | tok=-      | -           | cache=-      | total=4.8s | prep=34ms do=4759ms"
   },
   {
    "ts": "2026-10-23T19:34:04.370401101+08:00",
    "ch": "sys",
-   "text": "WARN: [continue] acct=账号03(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
+   "text": "WARN: [continue] acct=账号02(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
   },
   {
    "ts": "2026-10-23T19:34:04.375313195+08:00",
    "ch": "chat",
-   "text": "| #017 | 19:34:04 | cn:glm-5.3-flash           | stream | 200 | 账号03(9d9b656c)     | TTFB=3875ms   | tok=-      | -           | cache=-      | total=3.9s | prep=34ms do=3806ms"
+   "text": "| #017 | 19:34:04 | cn:glm-5.3-flash           | stream | 200 | 账号02(9d9b656c)     | TTFB=3875ms   | tok=-      | -           | cache=-      | total=3.9s | prep=34ms do=3806ms"
   },
   {
    "ts": "2026-10-23T19:45:09.661264004+08:00",

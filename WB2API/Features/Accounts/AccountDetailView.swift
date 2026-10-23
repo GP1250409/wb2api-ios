@@ -65,7 +65,7 @@ struct AccountDetailView: View {
         .scaleEffect(isLeaving ? 0.96 : 1)
         .allowsHitTesting(!isLeaving)
         .refreshable {
-            await model.load(using: session.client())
+            await model.load(using: session.client(), syncBalance: true)
         }
         .navigationTitle(current.displayName)
         .navigationBarTitleDisplayMode(.inline)
@@ -78,12 +78,13 @@ struct AccountDetailView: View {
         }
         .toast($model.toast)
         .task {
+            model.remember(account.uid)
             await model.load(using: session.client())
         }
     }
 
     private func reload() {
-        Task { await model.load(using: session.client()) }
+        Task { await model.load(using: session.client(), syncBalance: true) }
     }
 
     private func perform(_ command: AccountCommand) {

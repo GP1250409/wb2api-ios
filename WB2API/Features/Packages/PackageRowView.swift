@@ -18,6 +18,12 @@ struct PackageRowView: View {
             .monospacedDigit()
 
             CreditBar(progress: progress)
+
+            if let expiry = item.endTime, !expiry.isEmpty {
+                Label("到期 \(expiry)", systemImage: "calendar")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
         }
         .padding(.vertical, Metrics.xs)
         .frame(minHeight: Metrics.minTap)

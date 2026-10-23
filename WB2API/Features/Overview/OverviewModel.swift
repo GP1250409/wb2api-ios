@@ -32,10 +32,14 @@ final class OverviewModel {
         await load(using: client)
     }
 
-    func load(using client: APIClient?) async {
+    /// - Parameter syncBalance: 用户下拉/点刷新时为 true，先同步一轮上游余额再读缓存。
+    func load(using client: APIClient?, syncBalance: Bool = false) async {
         guard let client else {
             toast = Toast(kind: .failure, text: "尚未配置服务器地址")
             return
+        }
+        if syncBalance {
+            await BalanceSync.refreshAll(client: client)
         }
         await loader.load { try await client.overview() }
         // 今日 token 来自 usage 小时桶，失败不影响主数据

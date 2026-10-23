@@ -34,8 +34,8 @@
    "count": 2,
    "last": "19:34:04",
    "sev": "warn",
-   "sample": "WARN: [continue] acct=账号03(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）",
-   "sample_full": "WARN: [continue] acct=账号03(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
+   "sample": "WARN: [continue] acct=账号02(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）",
+   "sample_full": "WARN: [continue] acct=账号02(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
   },
   {
    "account": "账号1",
@@ -62,8 +62,8 @@
    "count": 1,
    "last": "19:33:28",
    "sev": "info",
-   "sample": "ERR: [upstream] chat_stream acct=账号03(9d9b656c): transport error: Post \"https://copilot.tencent.com/v2/chat/completions\": context canceled",
-   "sample_full": "ERR: [upstream] chat_stream acct=账号03(9d9b656c): transport error: Post \"https://copilot.tencent.com/v2/chat/completions\": context canceled"
+   "sample": "ERR: [upstream] chat_stream acct=账号02(9d9b656c): transport error: Post \"https://copilot.tencent.com/v2/chat/completions\": context canceled",
+   "sample_full": "ERR: [upstream] chat_stream acct=账号02(9d9b656c): transport error: Post \"https://copilot.tencent.com/v2/chat/completions\": context canceled"
   }
  ],
  "scanned": 81,

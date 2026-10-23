@@ -80,8 +80,8 @@ struct CreditHistoryView: View {
         guard let client = session.client() else { return }
         if syncUpstream, !isSyncing {
             isSyncing = true
-            // 同步失败不打断：本地账本仍是可展示的历史
-            _ = try? await client.refreshBalances()
+            // 同步失败不打断：本地账本仍是可展示的历史；节流避免连续下拉打爆上游
+            await BalanceSync.refreshAll(client: client)
             isSyncing = false
         }
         await loader.load { try await client.creditHistory(limit: 200) }

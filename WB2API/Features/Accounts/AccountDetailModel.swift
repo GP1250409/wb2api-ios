@@ -21,13 +21,21 @@ final class AccountDetailModel {
         loader.value?.accounts.first { $0.uid == fallback.uid } ?? fallback
     }
 
-    func load(using client: APIClient?) async {
+    /// - Parameter syncBalance: 用户主动刷新时为 true——先查这个号的上游余额再读快照。
+    func load(using client: APIClient?, syncBalance: Bool = false) async {
         guard let client else {
             toast = Toast(kind: .failure, text: "尚未配置服务器地址")
             return
         }
+        if syncBalance, let uid = lastUID {
+            await BalanceSync.refreshAccount(uid, client: client)
+        }
         await loader.load { try await client.overview() }
     }
+
+    /// 记住当前查看的账号，供余额同步用。
+    private(set) var lastUID: String?
+    func remember(_ uid: String) { lastUID = uid }
 
     func perform(_ command: AccountCommand, on account: Account, using client: APIClient?) async {
         guard let client else {

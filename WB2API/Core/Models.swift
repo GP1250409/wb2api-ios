@@ -282,6 +282,8 @@ struct ErrorRow: Codable, Identifiable, Sendable {
     let sev: String?
     let sample: String?
     let sampleFull: String?
+    /// 冷却结束时间（限流类错误才有），如 "2026-10-24 06:21:29"
+    let until: String?
 }
 
 struct ErrorSummary: Codable, Sendable {
@@ -321,11 +323,34 @@ struct UsageTotals: Codable, Sendable {
 struct UsageGroup: Codable, Identifiable, Sendable {
     var id: String { key ?? UUID().uuidString }
     let key: String?
+    /// 按账号聚合时 key 是 uid，昵称在 extra（by_account）/ nickname（credit_by_account）里
+    let extra: String?
+    let nickname: String?
+    let realm: String?
     let requests: Int?
     let errors: Int?
     let totalTokens: Int?
     let credits: Double?
     let avgLatencyMs: Double?
+
+    /// 图表/列表里的展示名：昵称 > extra > 域中文名 > key（按账号时 key 是 uid）。
+    var displayName: String {
+        if let nickname, !nickname.isEmpty { return nickname }
+        if let extra, !extra.isEmpty { return extra }
+        switch key {
+        case "cn": return "国内版"
+        case "global": return "国际版"
+        default: return key ?? "未知"
+        }
+    }
+
+    var realmLabel: String? {
+        switch realm {
+        case "cn": return "国内版"
+        case "global": return "国际版"
+        default: return nil
+        }
+    }
 }
 
 struct UsagePoint: Codable, Identifiable, Sendable {
@@ -411,6 +436,9 @@ struct PackageItem: Codable, Identifiable, Sendable {
     let remain: Int?
     let used: Int?
     let size: Int?
+    /// 到期时间（文本）与毫秒时间戳
+    let endTime: String?
+    let expiresAt: Int64?
 }
 
 struct PackageAccount: Codable, Identifiable, Sendable {
@@ -463,6 +491,21 @@ struct ConfigResponse: Codable, Sendable {
     let config: JSONValue
     let path: String?
     let apiKeyEnvManaged: Bool?
+}
+
+/// `POST /config` 的返回：哪些字段要重启才生效、哪些由环境变量托管。
+struct ConfigSaveResponse: Codable, Sendable {
+    let ok: Bool?
+    let restartRequired: [String]?
+    let apiKeyEnvManaged: Bool?
+    let environmentManagedFields: [String]?
+
+    var summary: String {
+        if let restartRequired, !restartRequired.isEmpty {
+            return "已保存；\(restartRequired.count) 个字段需重启生效：\(restartRequired.joined(separator: "、"))"
+        }
+        return "配置已保存"
+    }
 }
 
 // MARK: - 通用消息

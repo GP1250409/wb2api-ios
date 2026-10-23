@@ -59,8 +59,9 @@ struct UsageBarChart: View {
     }
 
     /// 类目标签过长会挤掉柱体，截断后仍保留可辨识前缀。
+    /// 账号维度用昵称（key 是 uid），域维度用中文名。
     private func label(for group: UsageGroup) -> String {
-        let raw = group.key ?? "未知"
+        let raw = group.displayName
         return raw.count > 12 ? String(raw.prefix(11)) + "…" : raw
     }
 }

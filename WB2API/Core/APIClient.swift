@@ -43,7 +43,7 @@ struct APIClient: Sendable {
 
     // MARK: 基础请求
 
-    private func request(path: String, method: String, query: [URLQueryItem], body: Data?) throws -> URLRequest {
+    private func request(path: String, method: String, query: [URLQueryItem], body: Data?, timeout: TimeInterval = 30) throws -> URLRequest {
         guard var comps = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else {
             throw APIError.invalidURL
         }
@@ -51,7 +51,7 @@ struct APIClient: Sendable {
         guard let url = comps.url else { throw APIError.invalidURL }
         var req = URLRequest(url: url)
         req.httpMethod = method
-        req.timeoutInterval = 30
+        req.timeoutInterval = timeout
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         if !apiKey.isEmpty {
             req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
@@ -93,8 +93,8 @@ struct APIClient: Sendable {
         return data
     }
 
-    func get<T: Decodable>(_ path: String, query: [URLQueryItem] = [], as type: T.Type = T.self) async throws -> T {
-        let req = try request(path: path, method: "GET", query: query, body: nil)
+    func get<T: Decodable>(_ path: String, query: [URLQueryItem] = [], as type: T.Type = T.self, timeout: TimeInterval = 30) async throws -> T {
+        let req = try request(path: path, method: "GET", query: query, body: nil, timeout: timeout)
         let data = try await execute(req)
         do {
             return try Self.decoder.decode(T.self, from: data)
@@ -103,14 +103,14 @@ struct APIClient: Sendable {
         }
     }
 
-    func post<T: Decodable>(_ path: String, query: [URLQueryItem] = [], body: (any Encodable)? = nil, as type: T.Type = T.self) async throws -> T {
+    func post<T: Decodable>(_ path: String, query: [URLQueryItem] = [], body: (any Encodable)? = nil, as type: T.Type = T.self, timeout: TimeInterval = 30) async throws -> T {
         var data: Data?
         if let body {
             let encoder = JSONEncoder()
             encoder.keyEncodingStrategy = .convertToSnakeCase
             data = try? encoder.encode(AnyEncodable(body))
         }
-        let req = try request(path: path, method: "POST", query: query, body: data)
+        let req = try request(path: path, method: "POST", query: query, body: data, timeout: timeout)
         let raw = try await execute(req)
         do {
             return try Self.decoder.decode(T.self, from: raw)
@@ -219,9 +219,24 @@ extension APIClient {
         try await get("\(Self.apiPrefix)/config")
     }
 
-    func saveConfig(_ config: JSONValue) async throws -> JSONValue {
-        struct Body: Encodable { let config: JSONValue }
-        return try await post("\(Self.apiPrefix)/config", body: Body(config: config))
+    func saveConfig(_ config: JSONValue) async throws -> ConfigSaveResponse {
+        // 后端把提交的 JSON 直接 merge 进 config.json，不接受外层包装：
+        // 曾经包成 {"config": …} → 保存「成功」但什么都没生效，还往配置文件里写了垃圾键。
+        try await post("\(Self.apiPrefix)/config", body: config, as: ConfigSaveResponse.self)
+    }
+
+    /// 用 API Key（ck_/pt_ 前缀）直接添加账号；后端会先打真实端点探测额度，失败不入池。
+    func addAPIKey(accessToken: String, nickname: String?, uid: String?) async throws -> JSONValue {
+        struct Body: Encodable {
+            let accessToken: String
+            let nickname: String?
+            let uid: String?
+        }
+        return try await post(
+            "\(Self.apiPrefix)/accounts/add_apikey",
+            body: Body(accessToken: accessToken, nickname: nickname, uid: uid),
+            as: JSONValue.self
+        )
     }
 
     func loginRegions() async throws -> LoginRegionsResponse {
@@ -238,13 +253,25 @@ extension APIClient {
     }
 
     // 单号操作
+    /// 单号操作（签到/余额/旅行/复活等）：上游往返可能十几秒，超时放宽。
     func accountAction(_ uid: String, action: String) async throws -> JSONValue {
-        try await post("\(Self.apiPrefix)/accounts/\(uid)/\(action)")
+        try await post("\(Self.apiPrefix)/accounts/\(uid)/\(action)", as: JSONValue.self, timeout: 90)
     }
 
-    func modelToggle(uid: String, model: String, enabled: Bool) async throws -> JSONValue {
-        struct Body: Encodable { let model: String; let enabled: Bool }
-        return try await post("\(Self.apiPrefix)/accounts/\(uid)/model_toggle", body: Body(model: model, enabled: enabled))
+    /// 手动开/关某账号的某个模型。
+    /// 后端字段是 `off`（true = 关闭），不是 `enabled`：写成 enabled 时 off 恒 false，
+    /// 表现为「怎么点都关不掉」。
+    func setModelOff(uid: String, model: String, off: Bool, note: String? = nil) async throws -> JSONValue {
+        struct Body: Encodable {
+            let model: String
+            let off: Bool
+            let note: String?
+        }
+        return try await post(
+            "\(Self.apiPrefix)/accounts/\(uid)/model_toggle",
+            body: Body(model: model, off: off, note: note),
+            as: JSONValue.self
+        )
     }
 
     func accountTasks(uid: String) async throws -> JSONValue {
@@ -265,7 +292,7 @@ extension APIClient {
 
     /// 扫描全部账号任务（返回每账号任务明细，用于逐项操作）
     func scanAllTasks() async throws -> JSONValue {
-        try await post("\(Self.apiPrefix)/tasks/scan_all")
+        try await post("\(Self.apiPrefix)/tasks/scan_all", as: JSONValue.self, timeout: 120)
     }
 
     /// 暂停执行队列：当前任务跑完后，剩余任务不再执行
@@ -279,7 +306,8 @@ extension APIClient {
         let raw = try await post(
             "\(Self.apiPrefix)/accounts/\(uid)/tasks/auto",
             body: Body(taskCode: code),
-            as: JSONValue.self
+            as: JSONValue.self,
+            timeout: 180
         )
         return TaskRunOutcome(raw)
     }
@@ -287,16 +315,30 @@ extension APIClient {
     /// 手动全量刷新余额：并发查上游，把最新积分写回池子——积分历史账本也在这里落新流水。
     /// 只读上游、无写操作副作用，但会真实请求一轮上游接口。
     func refreshBalances() async throws -> JSONValue {
-        try await post("\(Self.apiPrefix)/balance_all")
+        try await post("\(Self.apiPrefix)/balance_all", as: JSONValue.self, timeout: 90)
     }
 
     // 批量操作
+    /// 批量操作（全部签到/巡检/保活/补偿）：串行打上游，几十秒是常态。
     func batch(_ action: String) async throws -> JSONValue {
-        try await post("\(Self.apiPrefix)/\(action)")
+        try await post("\(Self.apiPrefix)/\(action)", as: JSONValue.self, timeout: 180)
     }
 
-    func importCockpit(_ payload: Data) async throws -> JSONValue {
-        let req = try request(path: "\(Self.apiPrefix)/import/cockpit", method: "POST", query: [], body: payload)
+    /// 导入 Cockpit 账号清单。后端读的是 multipart 的 `file` 字段，
+    /// 早期版本把 JSON 当请求体直发会 400（parse form 失败），已改成标准表单上传。
+    func importCockpit(_ payload: Data, filename: String = "cockpit.json") async throws -> JSONValue {
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var body = Data()
+        func append(_ text: String) { body.append(Data(text.utf8)) }
+        append("--\(boundary)\r\n")
+        append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n")
+        append("Content-Type: application/json\r\n\r\n")
+        body.append(payload)
+        append("\r\n--\(boundary)--\r\n")
+
+        var req = try request(path: "\(Self.apiPrefix)/import/cockpit", method: "POST", query: [], body: nil)
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        req.httpBody = body
         let raw = try await execute(req)
         return (try? Self.decoder.decode(JSONValue.self, from: raw)) ?? .null
     }

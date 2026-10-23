@@ -56,10 +56,15 @@ final class AccountsModel {
         await load(using: client)
     }
 
-    func load(using client: APIClient?) async {
+    /// - Parameter syncBalance: 用户主动刷新时为 true——先让后端查一轮上游余额，
+    ///   否则面板缓存的积分不会变（后台余额刷新默认关闭）。
+    func load(using client: APIClient?, syncBalance: Bool = false) async {
         guard let client else {
             toast = Toast(kind: .failure, text: "尚未配置服务器地址")
             return
+        }
+        if syncBalance {
+            await BalanceSync.refreshAll(client: client)
         }
         await loader.load { try await client.overview() }
     }

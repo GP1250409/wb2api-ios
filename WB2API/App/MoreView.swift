@@ -65,8 +65,15 @@ struct MoreView: View {
                     NavigationLink(value: MoreDestination.login) {
                         MoreEntryRow(
                             title: "登录",
-                            subtitle: "扫码授权添加账号",
+                            subtitle: "扫码授权 / API Key 添加账号",
                             systemImage: "person.badge.key"
+                        )
+                    }
+                    NavigationLink(value: MoreDestination.importAccounts) {
+                        MoreEntryRow(
+                            title: "导入账号",
+                            subtitle: "从 Cockpit 导出文件批量导入",
+                            systemImage: "square.and.arrow.down"
                         )
                     }
                     NavigationLink(value: MoreDestination.settings) {
@@ -88,6 +95,7 @@ struct MoreView: View {
                 case .compensation: CompensationView()
                 case .config: ConfigView()
                 case .login: LoginView()
+                case .importAccounts: ImportAccountsView()
                 case .settings: SettingsView()
                 }
             }

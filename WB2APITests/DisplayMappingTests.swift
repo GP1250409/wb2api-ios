@@ -1,0 +1,89 @@
+import XCTest
+@testable import WB2API
+
+/// 展示层字段映射：接口给 uid，界面要昵称；已领取的任务不该再出现在待办里。
+final class DisplayMappingTests: XCTestCase {
+    private func decode(_ raw: String) throws -> JSONValue {
+        try JSONDecoder().decode(JSONValue.self, from: Data(raw.utf8))
+    }
+
+    func testUsageGroupPrefersNicknameThenExtraThenRealm() throws {
+        let nickname = try JSONDecoder().decode(
+            UsageGroup.self,
+            from: Data(#"{"key":"uid-1","nickname":"阿七","extra":"旧名","realm":"cn"}"#.utf8)
+        )
+        XCTAssertEqual(nickname.displayName, "阿七")
+
+        let extra = try JSONDecoder().decode(
+            UsageGroup.self,
+            from: Data(#"{"key":"uid-1","extra":"账号02","realm":"cn"}"#.utf8)
+        )
+        XCTAssertEqual(extra.displayName, "账号02")
+
+        let realm = try JSONDecoder().decode(
+            UsageGroup.self,
+            from: Data(#"{"key":"cn"}"#.utf8)
+        )
+        XCTAssertEqual(realm.displayName, "国内版")
+    }
+
+    func testSingleAccountTasksSkipClaimed() throws {
+        let raw = """
+        {"ok":true,"tasks":[
+          {"task_code":"a","title":"已领取","accept_status":"claimed","claimed":true},
+          {"task_code":"b","title":"可领","accept_status":"completed","has_reward":true,"credit":30},
+          {"task_code":"c","title":"待做"}
+        ]}
+        """
+        let tasks = AccountTaskParser.fromSingle(
+            try decode(raw),
+            uid: "u1",
+            nickname: "阿七",
+            realm: "cn"
+        )
+        XCTAssertEqual(tasks.map(\.code), ["b", "c"])
+        XCTAssertTrue(tasks[0].canClaim)
+        XCTAssertTrue(tasks[1].canAccept)
+        XCTAssertFalse(tasks[0].canAccept)
+    }
+
+    func testClaimedTaskIsNotAcceptable() {
+        let task = AccountTask(
+            uid: "u1",
+            nickname: "阿七",
+            realm: "cn",
+            code: "a",
+            title: "已领取",
+            description: nil,
+            acceptStatus: "claimed",
+            current: 1,
+            target: 1,
+            hasReward: true,
+            credit: 10,
+            claimed: true
+        )
+        XCTAssertFalse(task.canAccept)
+        XCTAssertFalse(task.canClaim)
+    }
+
+    func testConfigSaveSummaryMentionsRestartFields() {
+        let response = ConfigSaveResponse(
+            ok: true,
+            restartRequired: ["listen"],
+            apiKeyEnvManaged: false,
+            environmentManagedFields: []
+        )
+        XCTAssertTrue(response.summary.contains("listen"))
+        let plain = ConfigSaveResponse(ok: true, restartRequired: [], apiKeyEnvManaged: false, environmentManagedFields: [])
+        XCTAssertEqual(plain.summary, "配置已保存")
+    }
+
+    func testImportResultParsesCounts() throws {
+        let result = ImportResult(try decode(#"{"ok":true,"total":3,"imported":2,"skipped":1,"errors":["x 重复"]}"#))
+        XCTAssertEqual(result.total, 3)
+        XCTAssertEqual(result.imported, 2)
+        XCTAssertEqual(result.skipped, 1)
+        XCTAssertEqual(result.headline, "共 3 条 · 导入 2 · 跳过 1")
+        XCTAssertEqual(result.lines.first, "x 重复")
+    }
+}

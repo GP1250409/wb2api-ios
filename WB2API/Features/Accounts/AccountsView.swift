@@ -23,7 +23,7 @@ struct AccountsView: View {
                 prompt: "搜索昵称或 UID"
             )
             .refreshable {
-                await model.load(using: session.client())
+                await model.load(using: session.client(), syncBalance: true)
             }
             .navigationDestination(for: Account.self) { account in
                 AccountDetailView(account: account)
@@ -78,7 +78,7 @@ struct AccountsView: View {
     }
 
     private func reload() {
-        Task { await model.load(using: session.client()) }
+        Task { await model.load(using: session.client(), syncBalance: true) }
     }
 
     private func perform(_ command: AccountCommand, on account: Account) {

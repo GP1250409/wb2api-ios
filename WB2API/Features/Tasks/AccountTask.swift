@@ -13,17 +13,23 @@ struct AccountTask: Identifiable, Sendable, Equatable {
     let target: Int?
     let hasReward: Bool
     let credit: Int?
+    /// 上游已领取（单号任务接口直接给这个布尔，扫描接口也有）
+    let claimed: Bool
 
     var id: String { "\(uid)-\(code)" }
 
-    /// 可接受：未 accepted / completed
+    /// 可接受：未接受、未完成、未领取
     var canAccept: Bool {
-        acceptStatus != "accepted" && acceptStatus != "completed"
+        if claimed { return false }
+        switch acceptStatus {
+        case "accepted", "completed", "claimed": return false
+        default: return true
+        }
     }
 
     /// 可领取：已完成且未领（有 reward 且进度已满）
     var canClaim: Bool {
-        guard hasReward else { return false }
+        guard hasReward, !claimed else { return false }
         if let c = current, let t = target, t > 0 {
             return c >= t
         }
@@ -62,9 +68,14 @@ enum AccountTaskParser {
     }
 
     /// `GET accounts/{uid}/tasks`：`{ok, tasks:[…]}`（无昵称，传空由上层补）
+    ///
+    /// 这个接口返回**全部**任务（含历史已完成/已领取），而扫描接口只给待办；
+    /// 单号刷新时按扫描同口径过滤，否则跑完一个任务后列表会突然多出一堆旧任务。
     static func fromSingle(_ value: JSONValue, uid: String, nickname: String?, realm: String?) -> [AccountTask] {
         let tasks = value.objectValue?["tasks"]?.arrayValue ?? []
-        return tasks.compactMap { task(from: $0, uid: uid, nickname: nickname, realm: realm) }
+        return tasks
+            .compactMap { task(from: $0, uid: uid, nickname: nickname, realm: realm) }
+            .filter { !$0.claimed && $0.acceptStatus != "claimed" }
     }
 
     private static func entry(from account: JSONValue) -> [AccountTask] {
@@ -89,7 +100,8 @@ enum AccountTaskParser {
             current: obj["current"]?.intValue,
             target: obj["target"]?.intValue,
             hasReward: obj["has_reward"]?.boolValue ?? false,
-            credit: obj["credit"]?.intValue
+            credit: obj["credit"]?.intValue,
+            claimed: obj["claimed"]?.boolValue ?? (obj["accept_status"]?.stringValue == "claimed")
         )
     }
 }

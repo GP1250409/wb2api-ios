@@ -38,6 +38,11 @@ struct ErrorRowView: View {
                 if let last = row.last, !last.isEmpty {
                     Label(last, systemImage: "clock")
                 }
+                if let until = row.until, !until.isEmpty,
+                   let left = Fmt.countdown(until: until) {
+                    Label("\(left)后恢复", systemImage: "hourglass")
+                        .foregroundStyle(.orange)
+                }
             }
             .font(.caption)
             .foregroundStyle(.secondary)

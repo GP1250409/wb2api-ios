@@ -111,14 +111,12 @@ struct ConfigView: View {
         isSaving = true
         defer { isSaving = false }
         do {
-            _ = try await client.saveConfig(editor.draft)
+            let result = try await client.saveConfig(editor.draft)
             editor.markSaved()
-            toast = Toast(kind: .success, text: "配置已保存")
+            toast = Toast(kind: .success, text: result.summary)
+            await load()
         } catch {
-            toast = Toast(
-                kind: .failure,
-                text: (error as? APIError)?.errorDescription ?? error.localizedDescription
-            )
+            toast = Toast(kind: .failure, text: error.humanMessage)
         }
     }
 
