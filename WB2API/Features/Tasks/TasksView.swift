@@ -1,12 +1,14 @@
 import SwiftUI
 
-/// 任务：队列状态 + 批量操作 + 扫描结果（按账号逐项操作）+ 作业列表。
+/// 任务：队列状态 + 批量操作 + 扫描结果（逐账号/逐任务勾选）+ 作业列表。
 struct TasksView: View {
     @Environment(SessionStore.self) private var session
 
     @State private var queue = Loader<TaskQueue>()
     @State private var jobs = Loader<JSONValue>()
     @State private var scannedTasks: [AccountTask] = []
+    @State private var selected: Set<String> = []
+    @State private var runner = TaskRunController()
     @State private var busyTaskID: String?
     @State private var isScanning = false
     @State private var isRunning = false
@@ -36,9 +38,16 @@ struct TasksView: View {
                             onRun: runQueue,
                             onPause: pauseQueue
                         )
-                        ScanResultView(tasks: scannedTasks) { task, action in
-                            perform(action, on: task)
-                        }
+                        ScanResultView(
+                            tasks: scannedTasks,
+                            selected: selected,
+                            running: runner.states,
+                            busyTaskID: busyTaskID,
+                            onToggleTask: toggle(_:),
+                            onToggleGroup: toggleGroup(_:select:),
+                            onRunOne: runSingle(_:),
+                            onAction: perform(_:on:)
+                        )
                         JobListView(jobs: jobs.value)
                     }
                 }
@@ -54,6 +63,9 @@ struct TasksView: View {
                         .disabled(isScanning || isRunning)
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                selectionBar
+            }
             .task { await poll() }
             .toast($toast)
         }
@@ -61,6 +73,59 @@ struct TasksView: View {
 
     private var isInitialLoading: Bool {
         queue.value == nil && queue.error == nil
+    }
+
+    private var selectedTasks: [AccountTask] {
+        scannedTasks.filter { selected.contains($0.id) }
+    }
+
+    // MARK: - 底部选择条
+
+    @ViewBuilder
+    private var selectionBar: some View {
+        if !selected.isEmpty || runner.isRunning {
+            HStack(spacing: Metrics.m) {
+                if runner.isRunning {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("执行中 \(runner.progressText)")
+                        .font(.footnote.bold())
+                        .contentTransition(.numericText())
+                    if runner.failureCount > 0 {
+                        Text("失败 \(runner.failureCount)")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                    Spacer()
+                    Button("停止") { runner.stop() }
+                        .font(.footnote.bold())
+                        .buttonStyle(.glass)
+                } else {
+                    Text("已选 \(selected.count) 项")
+                        .font(.footnote.bold())
+                        .contentTransition(.numericText())
+                    Spacer()
+                    Button("清空") { selected.removeAll() }
+                        .font(.footnote)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                    Button {
+                        runSelected()
+                    } label: {
+                        Label("执行选中", systemImage: "play.fill")
+                    }
+                    .font(.footnote.bold())
+                    .buttonStyle(.glassProminent)
+                }
+            }
+            .padding(.horizontal, Metrics.m)
+            .padding(.vertical, Metrics.s)
+            .glassEffect(.regular, in: .capsule)
+            .padding(.horizontal, Metrics.m)
+            .padding(.bottom, Metrics.s)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .animation(.snappy, value: selected.count)
+        }
     }
 
     // MARK: - 加载
@@ -92,10 +157,26 @@ struct TasksView: View {
         }
     }
 
+    // MARK: - 勾选
+
+    private func toggle(_ task: AccountTask) {
+        if selected.contains(task.id) {
+            selected.remove(task.id)
+        } else {
+            selected.insert(task.id)
+        }
+    }
+
+    private func toggleGroup(_ tasks: [AccountTask], select: Bool) {
+        if select {
+            selected.formUnion(tasks.map(\.id))
+        } else {
+            selected.subtract(tasks.map(\.id))
+        }
+    }
+
     // MARK: - 扫描与执行
 
-    /// 扫描全部：把返回的任务明细存进 scannedTasks，用户逐项操作。
-    /// （v2 之前的版本把结果扔了只弹 toast，表现为"没反应"。）
     private func scanAll() {
         Task {
             isScanning = true
@@ -112,6 +193,7 @@ struct TasksView: View {
                     return
                 }
                 scannedTasks = AccountTaskParser.fromScan(raw)
+                selected.removeAll()
                 if scannedTasks.isEmpty {
                     toast = Toast(kind: .success, text: "扫描完成，暂无待办任务")
                 } else {
@@ -120,6 +202,7 @@ struct TasksView: View {
                 }
                 withAnimation(.snappy) { /* 列表入场 */ }
             } catch {
+                guard !error.isCancellation else { return }
                 toast = Toast(kind: .failure, text: "扫描失败：\(error.humanMessage)")
             }
         }
@@ -139,7 +222,48 @@ struct TasksView: View {
         }
     }
 
+    /// 执行勾选的任意任务（可跨账号）：账号间并发 2、账号内串行，与后端 per-account 锁一致。
+    private func runSelected() {
+        let tasks = selectedTasks
+        guard !tasks.isEmpty else { return }
+        Task {
+            guard let client = session.client() else {
+                toast = Toast(kind: .failure, text: "尚未配置服务器地址")
+                return
+            }
+            guard !runner.isRunning else { return }
+            await runner.run(tasks, client: client)
+            selected.removeAll()
+            let ok = runner.successCount
+            let failed = runner.failureCount
+            toast = Toast(
+                kind: failed == 0 ? .success : .failure,
+                text: failed == 0 ? "已执行 \(ok) 项任务" : "完成 \(ok) 项，失败 \(failed) 项"
+            )
+            await refreshTasks(for: Set(tasks.map(\.uid)))
+        }
+    }
+
     // MARK: - 单项操作
+
+    private func runSingle(_ task: AccountTask) {
+        Task {
+            busyTaskID = task.id
+            defer { busyTaskID = nil }
+            guard let client = session.client() else { return }
+            do {
+                let outcome = try await client.runTask(uid: task.uid, code: task.code)
+                toast = Toast(
+                    kind: outcome.isSuccess ? .success : .failure,
+                    text: "\(task.title)：\(outcome.displayText)"
+                )
+                await refreshTasks(for: Set([task.uid]))
+            } catch {
+                guard !error.isCancellation else { return }
+                toast = Toast(kind: .failure, text: "执行失败：\(error.humanMessage)")
+            }
+        }
+    }
 
     private func perform(_ action: TaskAction, on task: AccountTask) {
         Task {
@@ -158,7 +282,6 @@ struct TasksView: View {
                     raw = try await client.claimTask(uid: task.uid, code: task.code)
                 }
                 let outcome = ActionOutcome(raw)
-                // claim 有 already_claimed / credit 等字段，给出具体反馈
                 var text = "\(task.title)\(action.rawValue)成功"
                 if let credit = raw.objectValue?["credit"]?.intValue, credit > 0 {
                     text += "，+\(credit) 分"
@@ -168,25 +291,33 @@ struct TasksView: View {
                     text = message
                 }
                 toast = Toast(kind: outcome.ok ? .success : .failure, text: text)
-                // 刷新该账号任务状态
-                await refreshTasks(for: task)
+                await refreshTasks(for: Set([task.uid]))
             } catch {
+                guard !error.isCancellation else { return }
                 toast = Toast(kind: .failure, text: "\(action.rawValue)失败：\(error.humanMessage)")
             }
         }
     }
 
-    /// 单号刷新任务状态并回填到 scannedTasks（避免整页重扫）。
-    private func refreshTasks(for task: AccountTask) async {
-        guard let client = session.client() else { return }
-        do {
-            let raw = try await client.accountTasks(uid: task.uid)
-            let fresh = AccountTaskParser.fromSingle(raw, uid: task.uid, nickname: task.nickname, realm: task.realm)
-            let staleIDs = Set(scannedTasks.filter { $0.uid == task.uid }.map(\.id))
-            scannedTasks.removeAll { staleIDs.contains($0.id) }
-            scannedTasks.append(contentsOf: fresh)
-        } catch {
-            // 静默失败：状态刷新不影响操作结果
+    /// 批量刷新若干账号的任务状态并回填（避免整页重扫）。
+    private func refreshTasks(for uids: Set<String>) async {
+        guard let client = session.client(), !uids.isEmpty else { return }
+        for uid in uids {
+            guard let sample = scannedTasks.first(where: { $0.uid == uid }) else { continue }
+            do {
+                let raw = try await client.accountTasks(uid: uid)
+                let fresh = AccountTaskParser.fromSingle(
+                    raw,
+                    uid: uid,
+                    nickname: sample.nickname,
+                    realm: sample.realm
+                )
+                let staleIDs = Set(scannedTasks.filter { $0.uid == uid }.map(\.id))
+                scannedTasks.removeAll { staleIDs.contains($0.id) }
+                scannedTasks.append(contentsOf: fresh)
+            } catch {
+                // 静默失败：状态刷新不影响操作结果
+            }
         }
     }
 
@@ -207,7 +338,9 @@ struct TasksView: View {
             toast = Toast(kind: .success, text: outcome.message ?? successText)
             await refreshAll()
         } catch {
+            guard !error.isCancellation else { return }
             toast = Toast(kind: .failure, text: "\(title)失败：\(error.humanMessage)")
         }
     }
 }
+

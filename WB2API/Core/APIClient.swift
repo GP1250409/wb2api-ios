@@ -273,6 +273,19 @@ extension APIClient {
         try await post("\(Self.apiPrefix)/tasks/pause")
     }
 
+    /// 单独执行一个任务（服务端会走完「接受 → 执行 → 回读校验 → 领奖」全流程）。
+    func runTask(uid: String, code: String) async throws -> TaskRunOutcome {
+        struct Body: Encodable { let taskCode: String }
+        let raw = try await post("\(Self.apiPrefix)/accounts/\(uid)/tasks/auto", body: Body(taskCode: code))
+        return TaskRunOutcome(raw)
+    }
+
+    /// 手动全量刷新余额：并发查上游，把最新积分写回池子——积分历史账本也在这里落新流水。
+    /// 只读上游、无写操作副作用，但会真实请求一轮上游接口。
+    func refreshBalances() async throws -> JSONValue {
+        try await post("\(Self.apiPrefix)/balance_all")
+    }
+
     // 批量操作
     func batch(_ action: String) async throws -> JSONValue {
         try await post("\(Self.apiPrefix)/\(action)")
