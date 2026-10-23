@@ -1,6 +1,9 @@
 import SwiftUI
 
 /// 礼包：按账号分组的礼包余量（`client.packages()`）。
+///
+/// 每组 = 一个账号（Section header 显示昵称 + 该账号 remain/size + 水位条），
+/// 组内每行 = 一个礼包（name + remain / used / size + 进度条）。
 struct PackagesView: View {
     @Environment(SessionStore.self) private var session
 
@@ -9,41 +12,36 @@ struct PackagesView: View {
     @State private var loader = Loader<PackagesResponse>()
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.m) {
-                if let error = loader.error {
+        Group {
+            if let error = loader.error, loader.value == nil {
+                ScrollView {
                     ErrorBanner(message: error) {
                         Task { await reload() }
                     }
-                    .padding(.horizontal, -Spacing.m)
+                    .padding(Spacing.m)
                 }
-
-                if loader.isLoading && loader.value == nil {
+                .background(Palette.background)
+            } else if loader.isLoading && loader.value == nil {
+                ScrollView {
                     SkeletonRows(count: 5)
-                        .padding(.horizontal, -Spacing.m)
-                } else if let response = loader.value {
-                    let accounts = response.accounts ?? []
-                    if accounts.isEmpty {
-                        EmptyBox(
-                            title: "暂无礼包数据",
-                            message: "账号接取礼包后会在这里汇总",
-                            systemImage: "gift"
-                        )
-                        .frame(maxWidth: .infinity, minHeight: 220)
-                    } else {
-                        ForEach(Array(accounts.indices), id: \.self) { index in
-                            accountCard(accounts[index])
-                                .staggeredAppear(index: index)
-                        }
-                    }
-                } else if loader.error == nil {
-                    EmptyBox(title: "暂无礼包数据", systemImage: "tray")
-                        .frame(maxWidth: .infinity, minHeight: 220)
+                        .padding(.vertical, Spacing.m)
                 }
+                .background(Palette.background)
+            } else if let response = loader.value, !response.accounts.isEmpty {
+                list(response.accounts)
+            } else {
+                ScrollView {
+                    EmptyBox(
+                        title: "暂无礼包数据",
+                        message: "账号接取礼包后会在这里汇总",
+                        systemImage: "gift"
+                    )
+                    .frame(maxWidth: .infinity, minHeight: 260)
+                    .padding(Spacing.m)
+                }
+                .background(Palette.background)
             }
-            .padding(Spacing.m)
         }
-        .background(Palette.background)
         .navigationTitle("礼包")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await reload() }
@@ -52,77 +50,89 @@ struct PackagesView: View {
         }
     }
 
-    // MARK: - 账号卡片
+    // MARK: - 分组列表
 
-    private func accountCard(_ account: PackageAccount) -> some View {
-        let packages = account.packages ?? []
+    private func list(_ accounts: [PackageAccount]) -> some View {
+        List {
+            ForEach(accounts) { account in
+                Section {
+                    let packages = account.packages ?? []
+                    if packages.isEmpty {
+                        Text("该账号暂无礼包")
+                            .font(Typography.caption)
+                            .foregroundStyle(Palette.textTertiary)
+                            .listRowBackground(Palette.surface)
+                    } else {
+                        ForEach(packages) { item in
+                            packageRow(item)
+                        }
+                    }
+                } header: {
+                    accountHeader(account)
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(Palette.background)
+    }
 
-        return VStack(alignment: .leading, spacing: Spacing.s) {
+    private func accountHeader(_ account: PackageAccount) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(alignment: .firstTextBaseline) {
                 Text(account.nickname ?? shortUID(account.uid))
                     .font(Typography.callout)
                     .foregroundStyle(Palette.textPrimary)
                     .lineLimit(1)
-
                 Spacer(minLength: Spacing.s)
-
                 Text("\(Fmt.credits(account.remain)) / \(Fmt.credits(account.size))")
                     .font(Typography.caption)
                     .foregroundStyle(Palette.textSecondary)
                     .monospacedDigit()
             }
-
-            // 账号级水位：remain / size（与礼包行保持同一口径）
-            CreditBar(progress: barProgress(remain: account.remain, size: account.size))
-
-            if packages.isEmpty {
-                Text("该账号暂无礼包")
-                    .font(Typography.caption)
-                    .foregroundStyle(Palette.textTertiary)
-                    .padding(.vertical, Spacing.xs)
-            } else {
-                ForEach(packages) { item in
-                    packageRow(item)
-                }
-            }
+            // 账号级水位同样取 remain / size：CreditBar 表达的是「还剩多少」
+            CreditBar(progress: ratio(account.remain, of: account.size))
         }
-        .padding(Spacing.m)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.surface, in: RoundedRectangle(cornerRadius: Radius.l, style: .continuous))
+        .textCase(nil)
+        .padding(.bottom, Spacing.xxs)
     }
 
     // MARK: - 礼包行
 
     private func packageRow(_ item: PackageItem) -> some View {
-        // 进度条取 used / size：直观展示已用掉多少；
-        // size 缺失时退回 remain / size 的互补口径（1 - remain/size）无法计算，则进度为 0。
-        let usedRatio = barProgress(remain: item.used, size: item.size)
+        // 进度条取 used / size：行内是「已用掉多少」，与账号 header 的剩余水位相反，
+        // 这样一眼能看出哪个礼包消耗得快；size 缺失时进度为 0。
+        let usedRatio = ratio(item.used, of: item.size)
 
         return VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack(alignment: .firstTextBaseline) {
                 Text(item.name ?? "未命名礼包")
-                    .font(Typography.caption)
+                    .font(Typography.callout)
                     .foregroundStyle(Palette.textPrimary)
                     .lineLimit(1)
-
                 Spacer(minLength: Spacing.s)
-
-                Text("\(Fmt.credits(item.remain)) 剩 · 已用 \(Fmt.credits(item.used)) / \(Fmt.credits(item.size))")
-                    .font(Typography.caption)
-                    .foregroundStyle(Palette.textSecondary)
-                    .monospacedDigit()
+                Text("\(Fmt.credits(item.remain)) / \(Fmt.credits(item.size))")
+                    .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(Palette.textPrimary)
             }
 
             CreditBar(progress: usedRatio, height: 3)
+
+            Text("已用 \(Fmt.credits(item.used)) · 剩 \(Fmt.credits(item.remain))")
+                .font(Typography.caption)
+                .foregroundStyle(Palette.textSecondary)
+                .monospacedDigit()
         }
         .padding(.vertical, Spacing.xxs)
+        .listRowBackground(Palette.surface)
     }
 
     // MARK: - 工具
 
-    private func barProgress(remain: Int?, size: Int?) -> Double {
-        guard let remain, let size, size > 0 else { return 0 }
-        return min(max(Double(remain) / Double(size), 0), 1)
+    /// part / whole，夹在 0…1。
+    private func ratio(_ part: Int?, of whole: Int?) -> Double {
+        guard let part, let whole, whole > 0 else { return 0 }
+        return min(max(Double(part) / Double(whole), 0), 1)
     }
 
     private func shortUID(_ uid: String?) -> String {

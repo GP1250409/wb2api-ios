@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// 补偿：`client.compensation()` 返回自由 JSON，复用通用 JSONValue 卡片；
 /// 顶部「全部补偿」触发批量操作 `client.batch("compensation_all")`。
@@ -33,7 +34,10 @@ struct CompensationView: View {
                         .foregroundStyle(Palette.textSecondary)
                         .padding(.horizontal, Spacing.xs)
 
-                    JSONValueCards(value: value)
+                    JSONValueCards(value: value) { text in
+                        UIPasteboard.general.string = text
+                        toast = Toast(kind: .success, text: "已复制该条 JSON")
+                    }
                 } else if loader.error == nil {
                     EmptyBox(title: "暂无补偿记录", systemImage: "arrow.uturn.backward.circle")
                         .frame(maxWidth: .infinity, minHeight: 220)

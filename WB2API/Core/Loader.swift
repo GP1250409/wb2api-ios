@@ -12,7 +12,7 @@ final class Loader<Value> {
 
     var isEmpty: Bool { value == nil && error == nil }
 
-    func load(_ operation: @escaping () async throws -> Value) async {
+    func load(_ operation: @escaping @MainActor () async throws -> Value) async {
         isLoading = true
         defer { isLoading = false }
         do {

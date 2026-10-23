@@ -8,6 +8,7 @@ struct OverviewView: View {
     @State private var loader = Loader<OverviewResponse>()
     @State private var toast: Toast?
     @State private var running: BatchCommand?
+    @State private var setupError: String?
 
     private var client: APIClient? { session.client() }
 

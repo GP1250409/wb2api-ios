@@ -1,21 +1,24 @@
 import SwiftUI
 import UIKit
 
-/// JSONValue 通用渲染卡片：键值对 + 长值复制按钮。
+/// JSONValue 通用卡片渲染：vouchers / compensation 这类「后端返回自由 JSON」的页面共用。
 ///
-/// 假设说明（vouchers / compensation 返回的是自由 JSON）：
-/// 1. 数组 → 每个元素一张卡片；元素是 object 时按键值对渲染，否则显示 displayText；
-/// 2. 对象 → 找第一个 `[JSONValue]` 数组字段作为列表（常见 `data` / `items` / `list` / `rows` / `vouchers`），
-///    找不到则整包渲染为一张键值对卡片；
-/// 3. 标量值过长（> 40 字符）截断，通过复制按钮拿全文。
+/// 渲染假设：
+/// 1. 数组 → 每个元素一张卡片；元素是 object 时逐键渲染 KeyValueRow，标量则直接显示；
+/// 2. 对象 → 优先取 `data` / `items` / `list` / `rows` / `vouchers` / `compensations` / `results`
+///    里的第一个数组作为列表；都没有数组时才把整个对象当一张卡片（避免空白页）；
+/// 3. 每张卡片带「复制」（UIPasteboard）与「分享」（ShareLink），复制内容为该条目的格式化 JSON；
+/// 4. 长字符串（> 40 字）在行内截断，靠复制/分享拿全文。
 struct JSONValueCards: View {
     let value: JSONValue
+    /// 复制成功回调（由页面弹 Toast）。
+    var onCopy: (String) -> Void
 
     var body: some View {
         let items = Self.flatten(value)
         if items.isEmpty {
             EmptyBox(title: "暂无数据", systemImage: "tray")
-                .frame(maxWidth: .infinity, minHeight: 180)
+                .frame(maxWidth: .infinity, minHeight: 200)
         } else {
             VStack(spacing: Spacing.s) {
                 ForEach(Array(items.indices), id: \.self) { index in
@@ -25,24 +28,41 @@ struct JSONValueCards: View {
         }
     }
 
-    /// 数组元素或单对象 → 卡片内容键值对列表。
+    // MARK: - 单张卡片
+
     private func itemCard(_ item: JSONValue, index: Int) -> some View {
         VStack(alignment: .leading, spacing: Spacing.s) {
+            if let title = Self.title(for: item, index: index) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(title)
+                        .font(Typography.callout)
+                        .foregroundStyle(Palette.textPrimary)
+                        .lineLimit(1)
+                    Spacer(minLength: Spacing.s)
+                    Text("#\(index + 1)")
+                        .font(Typography.caption)
+                        .foregroundStyle(Palette.textTertiary)
+                        .monospacedDigit()
+                }
+            }
+
             switch item {
             case .object(let fields):
                 let keys = fields.keys.sorted()
-                ForEach(Array(keys.indices), id: \.self) { index in
-                    let key = keys[index]
-                    let val = fields[key] ?? .null
-                    KeyValueRow(
-                        label: key,
-                        value: Self.previewText(val),
-                        tint: Self.tint(for: key, value: val)
-                    )
-                    if index < keys.count - 1 {
-                        Rectangle()
-                            .fill(Palette.divider)
-                            .frame(height: 1)
+                VStack(spacing: Spacing.xs) {
+                    ForEach(Array(keys.indices), id: \.self) { keyIndex in
+                        let key = keys[keyIndex]
+                        let val = fields[key] ?? .null
+                        KeyValueRow(
+                            label: key,
+                            value: Self.previewText(val),
+                            tint: Self.tint(for: key, value: val)
+                        )
+                        if keyIndex < keys.count - 1 {
+                            Rectangle()
+                                .fill(Palette.divider)
+                                .frame(height: 1)
+                        }
                     }
                 }
             default:
@@ -50,6 +70,27 @@ struct JSONValueCards: View {
                     .font(Typography.callout)
                     .foregroundStyle(Palette.textPrimary)
             }
+
+            Rectangle()
+                .fill(Palette.divider)
+                .frame(height: 1)
+
+            HStack(spacing: Spacing.l) {
+                Button {
+                    onCopy(Self.rawText(item))
+                } label: {
+                    Label("复制", systemImage: "doc.on.doc")
+                }
+                .buttonStyle(.plain)
+
+                ShareLink(item: Self.rawText(item)) {
+                    Label("分享", systemImage: "square.and.arrow.up")
+                }
+
+                Spacer(minLength: 0)
+            }
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(Palette.accent)
         }
         .padding(Spacing.m)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -57,7 +98,7 @@ struct JSONValueCards: View {
         .staggeredAppear(index: min(index, 6))
     }
 
-    // MARK: - 结构整形（静态，供外部判断空态）
+    // MARK: - 结构整形
 
     /// 把任意 JSONValue 规整成卡片数组。
     static func flatten(_ value: JSONValue) -> [JSONValue] {
@@ -65,15 +106,16 @@ struct JSONValueCards: View {
         case .array(let items):
             return items
         case .object(let fields):
-            // 优先取常见的列表字段；否则整包当一张卡片
             let preferred = ["data", "items", "list", "rows", "vouchers", "compensations", "results"]
             for key in preferred {
-                if let arr = fields[key]?.arrayValue {
-                    return arr
+                if let array = fields[key]?.arrayValue, !array.isEmpty {
+                    return array
                 }
             }
-            for (_, v) in fields where v.arrayValue != nil {
-                return v.arrayValue ?? []
+            for (_, candidate) in fields {
+                if let array = candidate.arrayValue, !array.isEmpty {
+                    return array
+                }
             }
             return [.object(fields)]
         case .null:
@@ -83,58 +125,51 @@ struct JSONValueCards: View {
         }
     }
 
-    /// 值的展示文本：长字符串截断（复制按钮可取全文由外层 Provide）。
-    static func previewText(_ value: JSONValue) -> String {
-        let text = value.displayText
-        if text.count > 40 {
-            return String(text.prefix(39)) + "…"
+    /// 卡片标题：取常见名称字段，取不到则不显示标题。
+    static func title(for item: JSONValue, index: Int) -> String? {
+        guard case .object(let fields) = item else { return nil }
+        let candidates = ["name", "title", "code", "voucher", "coupon", "label", "uid", "id", "key"]
+        for key in candidates {
+            if let text = fields[key]?.stringValue, !text.isEmpty {
+                return text
+            }
+            if let number = fields[key]?.intValue {
+                return String(number)
+            }
         }
-        return text
+        return nil
     }
 
-    /// 按字段名/值给一点语义着色（仅用现有 Palette 语义色）。
+    /// 值的展示文本：长字符串截断（复制可取全文）。
+    static func previewText(_ value: JSONValue) -> String {
+        switch value {
+        case .object(let fields):
+            return "\(fields.count) 个字段"
+        case .array(let items):
+            return "\(items.count) 项"
+        default:
+            let text = value.displayText
+            return text.count > 40 ? String(text.prefix(39)) + "…" : text
+        }
+    }
+
+    /// 按字段名/值给一点语义着色（只用 Palette 里已有的语义色）。
     static func tint(for key: String, value: JSONValue) -> Color {
         let lower = key.lowercased()
         if lower.contains("error") || lower.contains("fail") { return Palette.danger }
-        if lower.contains("ok") || lower.contains("success") { return Palette.success }
         if lower.contains("expire") || lower.contains("warn") { return Palette.warning }
+        if lower.contains("ok") || lower.contains("success") { return Palette.success }
         return Palette.textPrimary
     }
-}
 
-/// 长值复制行：点击复制全文（System 复制更兼容，不必引 UIPasteControl 依赖 UIKit 生命周期）。
-struct CopyableValueRow: View {
-    let label: String
-    let value: String
-
-    @State private var copied = false
-
-    var body: some View {
-        Button {
-            UIPasteboard.general.string = value
-            copied = true
-            Task {
-                try? await Task.sleep(for: .seconds(1.5))
-                copied = false
-            }
-        } label: {
-            HStack {
-                Text(label)
-                    .font(Typography.caption)
-                    .foregroundStyle(Palette.textSecondary)
-                Spacer()
-                Text(copied ? "已复制" : value)
-                    .font(.system(size: 13, weight: .medium).monospacedDigit())
-                    .foregroundStyle(copied ? Palette.success : Palette.textPrimary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Palette.textTertiary)
-            }
-            .motion(Motion.gentle, value: copied)
+    /// 单条记录的格式化 JSON，用于复制 / 分享。
+    static func rawText(_ value: JSONValue) -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        guard let data = try? encoder.encode(value), let text = String(data: data, encoding: .utf8) else {
+            return value.displayText
         }
-        .buttonStyle(.plain)
+        return text
     }
 }
 
@@ -162,31 +197,17 @@ struct VouchersView: View {
                         .padding(.horizontal, -Spacing.m)
                 } else if let value = loader.value {
                     let items = JSONValueCards.flatten(value)
-                    HStack {
-                        Text("共 \(items.count) 条")
-                            .font(Typography.caption)
-                            .foregroundStyle(Palette.textSecondary)
-                        Spacer()
-                        if let first = items.first, case .object(let fields) = first {
-                            // 取第一条里最长字符串字段作为快速复制入口（常见为券码本体）
-                            if let (key, val) = fields
-                                .max(by: { ($0.value.stringValue?.count ?? 0) < ($1.value.stringValue?.count ?? 0) }),
-                               let text = val.stringValue {
-                                Button {
-                                    UIPasteboard.general.string = text
-                                    toast = Toast(kind: .success, text: "已复制 \(key)")
-                                } label: {
-                                    Label("复制首条", systemImage: "doc.on.doc")
-                                        .font(.system(size: 12, weight: .semibold))
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, Spacing.xs)
+                    Text("共 \(items.count) 条")
+                        .font(Typography.caption)
+                        .foregroundStyle(Palette.textSecondary)
+                        .padding(.horizontal, Spacing.xs)
 
-                    JSONValueCards(value: value)
+                    JSONValueCards(value: value) { text in
+                        UIPasteboard.general.string = text
+                        toast = Toast(kind: .success, text: "已复制该条 JSON")
+                    }
                 } else if loader.error == nil {
-                    EmptyBox(title: "暂无券码", systemImage: "ticket")
+                    EmptyBox(title: "暂无券码", message: "接取券码后会在这里显示", systemImage: "ticket")
                         .frame(maxWidth: .infinity, minHeight: 220)
                 }
             }
