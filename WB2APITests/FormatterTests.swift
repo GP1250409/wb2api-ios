@@ -91,6 +91,6 @@ final class FormatterTests: XCTestCase {
         XCTAssertEqual(Fmt.tokens(74_600_000), "74.6M")
         XCTAssertEqual(Fmt.tokens(12_100), "12.1k")
         XCTAssertEqual(Fmt.tokens(960), "960")
-        XCTAssertNil(Fmt.tokens(nil))
+        XCTAssertEqual(Fmt.tokens(nil), "—")
     }
 }
