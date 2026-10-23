@@ -179,7 +179,6 @@ struct TasksView: View {
     /// 单号刷新任务状态并回填到 scannedTasks（避免整页重扫）。
     private func refreshTasks(for task: AccountTask) async {
         guard let client = session.client() else { return }
-        struct Target { let uid = task.uid }
         do {
             let raw = try await client.accountTasks(uid: task.uid)
             let fresh = AccountTaskParser.fromSingle(raw, uid: task.uid, nickname: task.nickname, realm: task.realm)
