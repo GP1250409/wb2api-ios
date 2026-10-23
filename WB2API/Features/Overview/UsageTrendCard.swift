@@ -172,9 +172,9 @@ struct UsageTrendCard: View {
     /// 辅助功能：上下调节选中的小时。
     private func adjustSelection(_ direction: AccessibilityAdjustmentDirection) {
         switch direction {
-        case .up, .left:
+        case .decrement:
             selectedIndex = max((selectedIndex ?? bars.count - 1) - 1, 0)
-        case .down, .right:
+        case .increment:
             selectedIndex = min((selectedIndex ?? -1) + 1, bars.count - 1)
         @unknown default:
             break
