@@ -81,7 +81,7 @@ enum AccountTaskParser {
         return AccountTask(
             uid: uid,
             nickname: nickname ?? "",
-            realm: realm,
+            realm: realm ?? "cn",
             code: code,
             title: obj["title"]?.stringValue ?? obj["task_desc"]?.stringValue ?? code,
             description: obj["description"]?.stringValue,

@@ -34,7 +34,7 @@ struct OverviewDigest: Equatable, Sendable {
         successRate = requests > 0 ? min(Double(successes) / Double(requests), 1) : nil
 
         earliestRecovery = Self.earliestRecovery(in: accounts)
-        todayTokens = usage.map(Self.todayTokens(in:))
+        todayTokens = usage.flatMap { Self.todayTokens(in: $0) }
     }
 
     // MARK: 派生
