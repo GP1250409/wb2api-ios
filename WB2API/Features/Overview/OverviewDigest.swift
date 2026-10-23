@@ -70,6 +70,12 @@ struct OverviewDigest: Equatable, Sendable {
         "今日签到 \(checkinDone)/\(total)"
     }
 
+    /// 今日 tokens 的大数表示（74.6M / 4.2B）。
+    var todayTokensText: String {
+        guard let todayTokens else { return "—" }
+        return Fmt.tokens(todayTokens)
+    }
+
     var checkinCaption: String {
         guard total > 0 else { return "暂无账号" }
         if checkinDone >= total { return "全部已完成" }

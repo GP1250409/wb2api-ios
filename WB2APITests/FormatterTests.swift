@@ -85,4 +85,12 @@ final class FormatterTests: XCTestCase {
         )
         XCTAssertEqual(Fmt.accountState(healthy), "可用")
     }
+
+    func testTokensFormatsBillionsAndMillions() {
+        XCTAssertEqual(Fmt.tokens(10_741_866_818), "10.74B")
+        XCTAssertEqual(Fmt.tokens(74_600_000), "74.6M")
+        XCTAssertEqual(Fmt.tokens(12_100), "12.1k")
+        XCTAssertEqual(Fmt.tokens(960), "960")
+        XCTAssertNil(Fmt.tokens(nil))
+    }
 }

@@ -19,7 +19,7 @@ struct OverviewStatsGrid: View {
             )
             StatTile(
                 title: "今日消耗",
-                value: Fmt.compact(digest.todayTokens ?? 0),
+                value: digest.todayTokensText,
                 caption: digest.todayTokens == nil ? "暂无用量数据" : "tokens · 今日"
             )
             StatTile(

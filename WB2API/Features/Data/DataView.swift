@@ -5,11 +5,18 @@ struct DataView: View {
     @Environment(SessionStore.self) private var session
     @State private var loader = Loader<UsageSnapshot>()
     @State private var dimension: UsageDimension = .account
+    @State private var range: UsageRange = .days7
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: Metrics.l) {
+                    UsageRangePicker(selection: $range)
+                        .onChange(of: range) { _, newValue in changeRange(newValue) }
+
+                    UsageRangeSummaryCard(range: range, totals: loader.value?.totals)
+                        .staggeredAppear(index: 0)
+
                     Picker("统计维度", selection: $dimension) {
                         ForEach(UsageDimension.allCases) { item in
                             Text(item.title).tag(item)
@@ -26,7 +33,7 @@ struct DataView: View {
                         LoadingSkeleton(rows: 5)
                     } else if let snapshot = loader.value {
                         UsageTotalsGrid(totals: snapshot.totals)
-                            .staggeredAppear(index: 0)
+                            .staggeredAppear(index: 1)
 
                         if dimension.groups(in: snapshot).isEmpty {
                             ContentUnavailableView {
@@ -49,7 +56,7 @@ struct DataView: View {
                         }
 
                         DataHistoryLinks()
-                            .staggeredAppear(index: 2)
+                            .staggeredAppear(index: 3)
                     } else {
                         ContentUnavailableView {
                             Label("暂无用量数据", systemImage: "chart.bar.xaxis")
@@ -61,6 +68,7 @@ struct DataView: View {
                 }
                 .padding(Metrics.m)
                 .animation(Motion.numeric, value: dimension)
+            .animation(Motion.numeric, value: range)
             }
             .background(.background)
             .navigationTitle("数据")
@@ -85,10 +93,16 @@ struct DataView: View {
 
     private func load() async {
         guard let client = session.client() else { return }
-        await loader.load { try await client.usage() }
+        let hours = range.hours
+        await loader.load { try await client.usage(hours: hours) }
     }
 
     private func refresh() {
+        Task { await load() }
+    }
+
+    /// 切区间 = 换一组数据，重新拉（range 已被 onChange 赋值）。
+    private func changeRange(_ newValue: UsageRange) {
         Task { await load() }
     }
 

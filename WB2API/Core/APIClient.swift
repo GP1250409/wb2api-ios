@@ -191,8 +191,13 @@ extension APIClient {
         try await get("\(Self.apiPrefix)/tasks/jobs")
     }
 
-    func usage() async throws -> UsageSnapshot {
-        try await get("\(Self.apiPrefix)/usage")
+    /// 用量快照。hours 缺省 72；后端最大 1440（60 天），用于区间统计。
+    func usage(hours: Int? = nil) async throws -> UsageSnapshot {
+        var query: [URLQueryItem] = []
+        if let hours, hours > 0 {
+            query = [URLQueryItem(name: "hours", value: String(min(hours, 1440)))]
+        }
+        return try await get("\(Self.apiPrefix)/usage", query: query)
     }
 
     func balanceHistory(days: Int = 7) async throws -> BalanceHistory {
