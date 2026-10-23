@@ -40,12 +40,40 @@ struct AccountDetailView: View {
                 ModelCostCard(account: current)
                     .staggeredAppear(index: 3)
 
+                NavigationLink {
+                    ModelTogglesView(account: current)
+                } label: {
+                    HStack(spacing: Metrics.s) {
+                        Label("模型开关", systemImage: "switch.2")
+                            .font(.callout)
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        if let off = current.modelOff, !off.isEmpty {
+                            Text("已关闭 \(off.count) 个")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        } else {
+                            Text("全部开启")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(Metrics.m)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .glassCard(padding: 0, cornerRadius: Metrics.radiusM)
+                .staggeredAppear(index: 4)
+
                 ActionsCard(
                     busy: model.busy,
                     onAction: perform,
                     onRemove: requestRemove
                 )
-                .staggeredAppear(index: 4)
+                .staggeredAppear(index: 5)
             }
             .padding(.horizontal, Metrics.m)
             .padding(.top, Metrics.s)

@@ -47,6 +47,22 @@ final class ModelDecodingTests: XCTestCase {
         XCTAssertGreaterThan(overview.totalCredits, 0)
     }
 
+    /// 账号级手动关闭的模型：`model_off:[{model,since,note}]`。
+    func testAccountDecodesModelOff() throws {
+        let raw = """
+        {"uid":"u1","nickname":"阿七","realm":"cn",
+         "model_off":[{"model":"auto","since":"10-24 02:37","note":"验证"}]}
+        """
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let account = try decoder.decode(Account.self, from: Data(raw.utf8))
+        let off = try XCTUnwrap(account.modelOff)
+        XCTAssertEqual(off.count, 1)
+        XCTAssertEqual(off.first?.model, "auto")
+        XCTAssertEqual(off.first?.since, "10-24 02:37")
+        XCTAssertEqual(off.first?.note, "验证")
+    }
+
     /// 回归：model_locks 曾经因为属性名和 JSON 键不匹配而永远解成 nil，
     /// 概览卡片一直显示「全部可用」，实际后端是有锁的。
     func testOverviewDecodesModelLocks() throws {

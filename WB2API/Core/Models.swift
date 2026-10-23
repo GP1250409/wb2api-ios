@@ -81,6 +81,15 @@ struct RateLimitedModel: Codable, Identifiable, Sendable {
     let reason: String?
 }
 
+/// 手动关闭的 (账号, 模型) 记录：`{model, since, note}`。
+struct ModelOffEntry: Codable, Identifiable, Sendable {
+    var id: String { model ?? UUID().uuidString }
+    let model: String?
+    /// 关闭时间（后端格式 "01-02 15:04"）
+    let since: String?
+    let note: String?
+}
+
 struct TokenUsage: Codable, Sendable {
     let requestCount: Int?
     let usageCount: Int?
@@ -113,6 +122,8 @@ struct Account: Codable, Identifiable, Sendable {
     let cooling: Bool?
     let until: String?
     let rateLimitedModels: [RateLimitedModel]?
+    /// 手动关闭的模型（后端 model_off；关闭后该账号不再被路由到这些模型）
+    let modelOff: [ModelOffEntry]?
     let realm: String?
     let disabled: Bool?
     let successCount: Int?
