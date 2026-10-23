@@ -165,7 +165,9 @@ struct OverviewResponse: Codable, Sendable {
     let inFlightFull: Int?
     let balanceRefreshSec: Int?
     let balanceRefreshedAt: String?
-    let modelLocksRaw: [ModelLock]?
+    /// JSON 键是 `model_locks`，靠 `.convertFromSnakeCase` 直接映射到这个名字。
+    /// （曾经叫 modelLocksRaw 且没写 CodingKeys，导致永远解成 nil、卡片一直显示「全部可用」。）
+    let modelLocks: [ModelLock]?
 
     var isInFlightFull: Bool { (inFlightFull ?? 0) > 0 }
     var total: Int { accounts.count }
@@ -212,10 +214,6 @@ struct ModelLock: Codable, Identifiable, Sendable {
         default: return .secondary
         }
     }
-}
-
-extension OverviewResponse {
-    var modelLocks: [ModelLock] { modelLocksRaw ?? [] }
 }
 
 // MARK: - 模型

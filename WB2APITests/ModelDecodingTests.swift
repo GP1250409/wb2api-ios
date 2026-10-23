@@ -47,6 +47,21 @@ final class ModelDecodingTests: XCTestCase {
         XCTAssertGreaterThan(overview.totalCredits, 0)
     }
 
+    /// 回归：model_locks 曾经因为属性名和 JSON 键不匹配而永远解成 nil，
+    /// 概览卡片一直显示「全部可用」，实际后端是有锁的。
+    func testOverviewDecodesModelLocks() throws {
+        let overview = try Fixture.decode(OverviewResponse.self, from: "overview")
+        let locks = try XCTUnwrap(overview.modelLocks)
+        XCTAssertFalse(locks.isEmpty, "夹具里带了 model_locks，不该解出空数组")
+        let lock = try XCTUnwrap(locks.first)
+        XCTAssertNotNil(lock.model)
+        XCTAssertNotNil(lock.total)
+        XCTAssertNotNil(lock.state)
+        XCTAssertNotNil(lock.unlockAt)
+        XCTAssertFalse(lock.stateLabel.isEmpty)
+        XCTAssertFalse(lock.realmLabel.isEmpty)
+    }
+
     func testModelsDecoding() throws {
         let models = try Fixture.decode(ModelsResponse.self, from: "models")
         XCTAssertGreaterThan(models.models.count, 10)
