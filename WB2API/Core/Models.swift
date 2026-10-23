@@ -388,14 +388,16 @@ struct BalanceHistory: Codable, Sendable {
     let series: [BalanceSeries]?
 }
 
+/// 积分变动记录（后端：account/after/before/delta/time/uid）
 struct CreditEntry: Codable, Identifiable, Sendable {
-    var id: String { "\(ts ?? 0)-\(uid ?? "")-\(model ?? "")" }
-    let ts: Int?
+    var id: String { "\(uid ?? "")-\(time ?? "")-\(delta ?? 0)" }
+    let account: String?
     let uid: String?
-    let model: String?
-    let credits: Double?
-    let tokens: Int?
-    let note: String?
+    let before: Int?
+    let after: Int?
+    /// 变动量：正数为获得，负数为消耗
+    let delta: Int?
+    let time: String?
 }
 
 struct CreditHistory: Codable, Sendable {

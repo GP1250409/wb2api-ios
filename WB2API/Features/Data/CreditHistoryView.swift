@@ -9,8 +9,8 @@ struct CreditHistoryView: View {
         loader.value?.entries ?? []
     }
 
-    private var totalCredits: Double {
-        entries.compactMap(\.credits).reduce(0, +)
+    private var netChange: Int {
+        entries.compactMap(\.delta).reduce(0, +)
     }
 
     var body: some View {
@@ -44,7 +44,7 @@ struct CreditHistoryView: View {
                 } header: {
                     Text("最近 \(entries.count) 条")
                 } footer: {
-                    Text("合计 \(Fmt.creditsDouble(totalCredits)) 积分 · 上限 \(loader.value?.limit ?? 0) 条")
+                    Text("净变动 \(netChange >= 0 ? "+" : "") \(Fmt.credits(netChange)) · 最多保留 \(loader.value?.limit ?? 0) 条")
                 }
             }
         }

@@ -1,32 +1,30 @@
 import SwiftUI
 
-/// 单条积分消耗。
+/// 单条积分变动：账号 + 变动量 + 余额前后。
 struct CreditEntryRow: View {
     let entry: CreditEntry
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Metrics.m) {
             VStack(alignment: .leading, spacing: Metrics.xs) {
-                Label(entry.model ?? "未知模型", systemImage: "cpu")
+                Label(entry.account ?? shortUID, systemImage: "person.crop.circle")
                     .font(.subheadline)
                     .lineLimit(1)
 
-                HStack(spacing: Metrics.xs) {
-                    Text(shortUID)
-                    Text("·")
-                    Text(tokenText)
+                if let before = entry.before, let after = entry.after {
+                    Text("\(Fmt.credits(before)) → \(Fmt.credits(after))")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
                 }
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
             }
 
             Spacer(minLength: 0)
 
             VStack(alignment: .trailing, spacing: Metrics.xs) {
-                Text(creditText)
-                    .font(.body.monospacedDigit())
-                    .foregroundStyle(creditTint)
+                Text(deltaText)
+                    .font(.body.monospacedDigit().bold())
+                    .foregroundStyle(deltaTint)
                     .contentTransition(.numericText())
 
                 if let date {
@@ -46,26 +44,19 @@ struct CreditEntryRow: View {
         return String(uid.prefix(6))
     }
 
-    private var tokenText: String {
-        Fmt.compact(entry.tokens) + " tok"
+    private var deltaText: String {
+        guard let delta = entry.delta else { return "—" }
+        return (delta > 0 ? "+" : "") + Fmt.credits(delta)
     }
 
-    private var creditText: String {
-        guard let credits = entry.credits else { return "—" }
-        let prefix = credits > 0 ? "+" : ""
-        return prefix + Fmt.creditsDouble(credits)
+    private var deltaTint: Color {
+        guard let delta = entry.delta else { return .secondary }
+        if delta > 0 { return .green }
+        if delta < 0 { return .primary }
+        return .secondary
     }
 
-    private var creditTint: Color {
-        guard let credits = entry.credits else { return .secondary }
-        if credits > 0 { return .green }
-        return .primary
-    }
-
-    /// 后端时间戳按秒返回；兼容误传毫秒的情况。
     private var date: Date? {
-        guard let ts = entry.ts, ts > 0 else { return nil }
-        let seconds = ts > 1_000_000_000_000 ? Double(ts) / 1000 : Double(ts)
-        return Date(timeIntervalSince1970: seconds)
+        Fmt.parse(entry.time)
     }
 }
