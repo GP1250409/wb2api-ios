@@ -33,27 +33,16 @@ struct AccountsView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 } else if model.filtered.isEmpty {
-                    Group {
-                        if model.query.isEmpty {
-                            ContentUnavailableView {
-                                Label(model.emptyTitle, systemImage: model.emptyIcon)
-                            } description: {
-                                Text(model.emptyMessage)
-                            } actions: {
-                                if model.filter != .all {
-                                    Button("显示全部") {
-                                        model.filter = .all
-                                    }
-                                }
-                            }
-                        } else {
-                            ContentUnavailableView.search(text: model.query)
-                        }
+                    AccountsEmptyState(
+                        isSearching: model.isSearching,
+                        query: model.query,
+                        title: model.emptyTitle,
+                        systemImage: model.emptyIcon,
+                        message: model.emptyMessage,
+                        isFiltered: model.filter != .all
+                    ) {
+                        model.filter = .all
                     }
-                    .frame(maxWidth: .infinity, minHeight: 320)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
                 } else {
                     ForEach(model.filtered) { account in
                         AccountListRow(

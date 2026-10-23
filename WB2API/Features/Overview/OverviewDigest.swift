@@ -2,7 +2,8 @@ import Foundation
 
 /// 概览页的纯计算层。
 ///
-/// 把 `OverviewResponse` 压成可以直接念给用户听的结论（"8/11 健康"、"1 个冷却中 · 4 分 32 秒后恢复"），
+/// 把 `OverviewResponse` 压成可以直接念给用户听的结论
+/// （"8/11 健康"、"1 个冷却中 · 4 分 32 秒后恢复"），
 /// 让视图只负责排版，也方便单测。
 struct OverviewDigest: Equatable, Sendable {
     let total: Int

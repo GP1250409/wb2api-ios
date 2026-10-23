@@ -17,6 +17,10 @@ final class AccountsModel {
     var error: String? { loader.error }
     var lastUpdated: Date? { loader.lastUpdated }
 
+    var isSearching: Bool {
+        !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     /// 搜索 + 筛选后的结果，顺序沿用面板返回顺序。
     var filtered: [Account] {
         let keyword = query.trimmingCharacters(in: .whitespacesAndNewlines)

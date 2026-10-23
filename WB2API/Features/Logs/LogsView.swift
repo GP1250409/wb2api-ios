@@ -77,18 +77,19 @@ struct LogsView: View {
         }
         .refreshable { await refreshLogs() }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(autoRefreshTitle, systemImage: autoRefreshIcon, action: toggleAutoRefresh)
-                    .labelStyle(.iconOnly)
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Menu("更多", systemImage: "ellipsis.circle") {
-                    NavigationLink("请求日志", value: LogsRoute.requestLogs)
-                    NavigationLink("错误汇总", value: LogsRoute.errorSummary)
-                    Divider()
-                    Button("立即刷新", systemImage: "arrow.clockwise", action: refreshNow)
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                NavigationLink(value: LogsRoute.requestLogs) {
+                    Label("请求日志", systemImage: "arrow.left.arrow.right")
                 }
                 .labelStyle(.iconOnly)
+
+                NavigationLink(value: LogsRoute.errorSummary) {
+                    Label("错误汇总", systemImage: "exclamationmark.triangle")
+                }
+                .labelStyle(.iconOnly)
+
+                Button(autoRefreshTitle, systemImage: autoRefreshIcon, action: toggleAutoRefresh)
+                    .labelStyle(.iconOnly)
             }
         }
         .task(id: isAutoRefreshEnabled) { await autoRefresh() }
@@ -119,10 +120,6 @@ struct LogsView: View {
     }
 
     // MARK: - 加载
-
-    private func refreshNow() {
-        Task { await refreshLogs() }
-    }
 
     private func retry() {
         Task { await refreshLogs() }

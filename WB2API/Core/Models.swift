@@ -165,6 +165,7 @@ struct OverviewResponse: Codable, Sendable {
     let balanceRefreshSec: Int?
     let balanceRefreshedAt: String?
 
+    var isInFlightFull: Bool { (inFlightFull ?? 0) > 0 }
     var total: Int { accounts.count }
     var totalCredits: Int { accounts.compactMap(\.credits).reduce(0, +) }
 }

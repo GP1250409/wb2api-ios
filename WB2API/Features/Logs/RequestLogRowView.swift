@@ -50,7 +50,7 @@ struct RequestLogRowView: View {
     }
 
     private var statusText: String {
-        row.status.map(String.init) ?? (row.isOK ? "OK" : "ERR")
+        row.status.map { String($0) } ?? (row.isOK ? "OK" : "ERR")
     }
 
     private var tint: Color {

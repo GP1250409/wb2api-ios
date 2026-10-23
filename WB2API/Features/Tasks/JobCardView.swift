@@ -21,10 +21,12 @@ struct JobCardView: View {
                 Divider()
                 VStack(spacing: Metrics.xs) {
                     ForEach(entry.fields.indices, id: \.self) { index in
-                        LabeledContent(entry.fields[index].key) {
+                        LabeledContent {
                             Text(entry.fields[index].value)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.trailing)
+                        } label: {
+                            Text(entry.fields[index].key)
                         }
                     }
                 }
