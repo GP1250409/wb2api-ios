@@ -19,16 +19,16 @@ struct ToastOverlay: ViewModifier {
                         .font(.footnote.weight(.medium))
                         .padding(.horizontal, Metrics.m)
                         .padding(.vertical, Metrics.s + 2)
-                        .glassEffect(.regular, in: .capsule)
+                        .glassEffect(.regular.interactive(), in: .capsule)
                         .padding(.top, Metrics.s)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .transition(AnyTransition.move(edge: .top).combined(with: .opacity))
                         .task(id: toast.id) {
                             try? await Task.sleep(for: .seconds(2.2))
-                            withAnimation(.snappy) { self.toast = nil }
+                            withAnimation(Animation.snappy) { self.toast = nil }
                         }
                 }
             }
-            .animation(.snappy, value: toast?.id)
+            .animation(Animation.snappy, value: toast?.id)
             .sensoryFeedback(.success, trigger: toast?.id)
     }
 
