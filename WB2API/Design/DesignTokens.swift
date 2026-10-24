@@ -76,6 +76,21 @@ extension View {
             .glassEffect(.regular, in: .rect(cornerRadius: cornerRadius))
     }
 
+    /// 账号卡片：实底 + 发丝边 + 轻投影。玻璃在浅色渐变上会发灰，
+    /// 概览的账号池卡片之前就是这种实底观感，账号页统一过来。
+    func accountCard(cornerRadius: CGFloat = Metrics.radiusM) -> some View {
+        self
+            .background {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            .strokeBorder(Accent.primary.opacity(0.10), lineWidth: 1)
+                    }
+                    .shadow(color: .black.opacity(0.06), radius: 10, y: 4)
+            }
+    }
+
     /// 可交互玻璃（按钮组、控件）：带高亮响应。
     func glassInteractive(cornerRadius: CGFloat = Metrics.radiusM) -> some View {
         self.glassEffect(.regular.interactive(), in: .rect(cornerRadius: cornerRadius))

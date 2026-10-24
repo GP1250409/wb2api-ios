@@ -13,8 +13,8 @@ struct AccountListRow: View {
         // 和概览「账号池」的卡片样式不一致。点按行为与 zoom 转场保持不变。
         Button(action: onOpen) {
             AccountRowView(account: account, isBusy: isBusy)
-                .padding(Metrics.m - Metrics.xs)
-                .glassInteractive(cornerRadius: Metrics.radiusM)
+                .padding(Metrics.m)
+                .accountCard()
         }
         .buttonStyle(.plain)
         .matchedTransitionSource(id: account.uid, in: namespace)
