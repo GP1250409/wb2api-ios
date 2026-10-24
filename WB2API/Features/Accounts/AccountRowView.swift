@@ -33,7 +33,7 @@ struct AccountRowView: View {
                 VStack(alignment: .trailing, spacing: Metrics.xs) {
                     Text(Fmt.credits(account.credits))
                         .font(.metricSmall())
-                        .contentTransition(.numericText())
+
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
 

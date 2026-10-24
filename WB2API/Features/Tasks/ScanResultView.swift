@@ -33,7 +33,7 @@ struct ScanResultView: View {
             )
 
             if tasks.isEmpty {
-                ContentUnavailableView(
+                CompatEmptyState(
                     "没有待办任务",
                     systemImage: "checkmark.seal",
                     description: Text("先点「扫描全部」，或所有账号的任务都已处理完")
@@ -65,7 +65,7 @@ struct ScanResultView: View {
                 .accessibilityLabel(allChosen ? "取消选择 \(group.nickname)" : "选择 \(group.nickname) 的全部任务")
 
                 Button {
-                    withAnimation(.snappy) { expandedUID = expanded ? nil : group.uid }
+                    withAnimation(.compatSnappy) { expandedUID = expanded ? nil : group.uid }
                 } label: {
                     HStack(spacing: Metrics.s) {
                         Label(group.nickname, systemImage: "person.crop.circle")
@@ -174,14 +174,14 @@ private struct TaskRow: View {
                 if task.canClaim {
                     Button(TaskAction.claim.rawValue) { onAction(.claim) }
                         .font(.footnote.bold())
-                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.borderedProminent)
                         .controlSize(.small)
                         .disabled(isBusy || isRunningState)
                 }
                 if task.canAccept {
                     Button(TaskAction.accept.rawValue) { onAction(.accept) }
                         .font(.footnote.bold())
-                        .buttonStyle(.glass)
+                        .buttonStyle(.bordered)
                         .controlSize(.small)
                         .disabled(isBusy || isRunningState)
                 }
@@ -195,19 +195,19 @@ private struct TaskRow: View {
                     }
                 }
                 .font(.footnote.bold())
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(isBusy || isRunningState)
             }
         }
         .padding(Metrics.s)
-        .background(isSelected ? Accent.primary.opacity(0.08) : Color.clear, in: .rect(cornerRadius: Metrics.radiusS))
+        .background(isSelected ? Accent.primary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: Metrics.radiusS))
         .overlay {
             RoundedRectangle(cornerRadius: Metrics.radiusS)
                 .strokeBorder(isSelected ? Accent.primary.opacity(0.35) : .clear, lineWidth: 1)
         }
-        .animation(.snappy, value: task.acceptStatus)
-        .animation(.snappy, value: isSelected)
+        .animation(.compatSnappy, value: task.acceptStatus)
+        .animation(.compatSnappy, value: isSelected)
     }
 
     private var isRunningState: Bool {

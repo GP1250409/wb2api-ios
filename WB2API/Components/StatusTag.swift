@@ -12,6 +12,6 @@ struct StatusTag: View {
             .foregroundStyle(tint)
             .padding(.horizontal, Metrics.s)
             .padding(.vertical, Metrics.xs)
-            .glassEffect(.regular.tint(tint.opacity(0.18)), in: .capsule)
+            .compatGlassEffect(.regular.tint(tint.opacity(0.18)), in: Capsule())
     }
 }

@@ -9,7 +9,7 @@ struct CreditBar: View {
         ProgressView(value: min(max(progress, 0), 1))
             .progressViewStyle(.linear)
             .tint(tint)
-            .animation(.snappy, value: progress)
+            .animation(.compatSnappy, value: progress)
             .accessibilityLabel("积分水位")
             .accessibilityValue("\(Int(progress * 100))%")
     }

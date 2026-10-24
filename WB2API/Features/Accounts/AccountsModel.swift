@@ -1,18 +1,25 @@
 import Foundation
-import Observation
+import Combine
 
 /// 账号列表的数据、筛选与单号操作。
 @MainActor
-@Observable
-final class AccountsModel {
+final class AccountsModel: ObservableObject {
+    private var loaderSubscriptions: Set<AnyCancellable> = []
+
+    init() {
+        loader.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }.store(in: &loaderSubscriptions)
+    }
+
     private let loader = Loader<OverviewResponse>()
 
-    var query = ""
-    var filter: AccountFilter = .all
-    var toast: Toast?
-    private(set) var busyUIDs: Set<String> = []
+    @Published var query = ""
+    @Published var filter: AccountFilter = .all
+    @Published var toast: Toast?
+    @Published private(set) var busyUIDs: Set<String> = []
     /// 覆盖「同步上游余额 + 重拉 overview」整段；按钮转圈用它，别只看 loader.isLoading
-    private(set) var isReloading = false
+    @Published private(set) var isReloading = false
 
     var accounts: [Account] { loader.value?.accounts ?? [] }
     var isLoading: Bool { loader.isLoading }

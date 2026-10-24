@@ -73,11 +73,11 @@ extension View {
     func glassCard(padding: CGFloat = Metrics.m, cornerRadius: CGFloat = Metrics.radiusL) -> some View {
         self
             .padding(padding)
-            .glassEffect(.regular, in: .rect(cornerRadius: cornerRadius))
+            .compatGlassEffect(.regular, in: RoundedRectangle(cornerRadius: cornerRadius))
     }
 
     /// 可交互玻璃（按钮组、控件）：带高亮响应。
     func glassInteractive(cornerRadius: CGFloat = Metrics.radiusM) -> some View {
-        self.glassEffect(.regular.interactive(), in: .rect(cornerRadius: cornerRadius))
+        self.compatGlassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: cornerRadius))
     }
 }

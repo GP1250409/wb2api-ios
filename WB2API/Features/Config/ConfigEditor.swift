@@ -1,15 +1,14 @@
 import Foundation
-import Observation
+import Combine
 
 /// 配置编辑状态：保存加载时的快照与可编辑草稿，提供路径级读写。
 @MainActor
-@Observable
-final class ConfigEditor {
-    private(set) var original: JSONValue = .object([:])
-    var draft: JSONValue = .object([:])
-    private(set) var path: String?
-    private(set) var apiKeyEnvManaged = false
-    private(set) var isLoaded = false
+final class ConfigEditor: ObservableObject {
+    @Published private(set) var original: JSONValue = .object([:])
+    @Published var draft: JSONValue = .object([:])
+    @Published private(set) var path: String?
+    @Published private(set) var apiKeyEnvManaged = false
+    @Published private(set) var isLoaded = false
 
     var isDirty: Bool { draft != original }
 

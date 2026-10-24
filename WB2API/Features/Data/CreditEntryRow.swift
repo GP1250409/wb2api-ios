@@ -25,7 +25,7 @@ struct CreditEntryRow: View {
                 Text(deltaText)
                     .font(.body.monospacedDigit().bold())
                     .foregroundStyle(deltaTint)
-                    .contentTransition(.numericText())
+
 
                 if let date {
                     Text(date, format: .dateTime.month().day().hour().minute())

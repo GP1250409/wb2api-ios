@@ -10,23 +10,22 @@ struct MainTabsView: View {
 
     var body: some View {
         TabView(selection: $selection) {
-            Tab("概览", systemImage: "gauge.with.dots.needle.50percent", value: AppTab.overview) {
-                OverviewView()
-            }
-            Tab("账号", systemImage: "person.2.fill", value: AppTab.accounts) {
-                AccountsView()
-            }
-            Tab("任务", systemImage: "checklist", value: AppTab.tasks) {
-                TasksView()
-            }
-            Tab("数据", systemImage: "chart.bar.xaxis", value: AppTab.data) {
-                DataView()
-            }
-            Tab("更多", systemImage: "ellipsis", value: AppTab.more) {
-                MoreView()
-            }
+            OverviewView()
+                .tabItem { Label("概览", systemImage: "gauge.with.dots.needle.50percent") }
+                .tag(AppTab.overview)
+            AccountsView()
+                .tabItem { Label("账号", systemImage: "person.2.fill") }
+                .tag(AppTab.accounts)
+            TasksView()
+                .tabItem { Label("任务", systemImage: "checklist") }
+                .tag(AppTab.tasks)
+            DataView()
+                .tabItem { Label("数据", systemImage: "chart.bar.xaxis") }
+                .tag(AppTab.data)
+            MoreView()
+                .tabItem { Label("更多", systemImage: "ellipsis") }
+                .tag(AppTab.more)
         }
-        .tabBarMinimizeBehavior(.onScrollDown)
         .tint(Accent.primary)
         .toast($toast)
     }

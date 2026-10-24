@@ -7,8 +7,8 @@ import UIKit
 /// 每张券有 `prize_name / code / valid_to / granted_at`；空数组占多数，之前用
 /// 通用 JSON 视图会把 11 个账号的空列表全铺出来，看起来像坏了。
 struct VouchersView: View {
-    @Environment(SessionStore.self) private var session
-    @State private var loader = Loader<VoucherResponse>()
+    @EnvironmentObject private var session: SessionStore
+    @StateObject private var loader = Loader<VoucherResponse>()
     @State private var toast: Toast?
 
     private var accounts: [VoucherAccount] {
@@ -40,7 +40,7 @@ struct VouchersView: View {
                         .listRowBackground(Color.clear)
                 }
             } else if nonEmpty.isEmpty {
-                ContentUnavailableView {
+                CompatEmptyState {
                     Label("没有可用券码", systemImage: "ticket")
                 } description: {
                     Text("开学季抽到实物券后会显示在这里；抽到的是积分，不在此列表。")
@@ -82,8 +82,8 @@ struct VouchersView: View {
         .refreshable { await load() }
         .task { await load() }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("刷新", systemImage: "arrow.clockwise", action: refresh)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                CompatIconButton("刷新", systemImage: "arrow.clockwise", action: refresh)
                     .disabled(loader.isLoading)
             }
         }
@@ -176,7 +176,7 @@ private struct VoucherRow: View {
                 }
                 .foregroundStyle(Accent.primary)
                 .padding(Metrics.s)
-                .background(.quaternary.opacity(0.4), in: .rect(cornerRadius: Metrics.radiusS))
+                .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: Metrics.radiusS))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("复制券码 \(voucher.code)")

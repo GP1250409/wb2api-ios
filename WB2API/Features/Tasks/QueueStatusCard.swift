@@ -18,14 +18,14 @@ struct QueueStatusCard: View {
                     systemImage: running ? "bolt.fill" : "pause.fill",
                     tint: running ? Accent.primary : .secondary
                 )
-                .symbolEffect(.pulse, options: .repeating, isActive: running)
+
             }
 
             HStack(alignment: .firstTextBaseline, spacing: Metrics.s) {
                 Text(total, format: .number)
                     .font(.metric())
                     .foregroundStyle(running ? Accent.primary : .primary)
-                    .contentTransition(.numericText())
+
                 Text("项排队")
                     .font(.callout)
                     .foregroundStyle(.secondary)
@@ -69,12 +69,4 @@ struct QueueStatusCard: View {
         }
         return Fmt.ago(startedAt)
     }
-}
-
-#Preview {
-    VStack(spacing: Metrics.m) {
-        QueueStatusCard(running: true, total: 12, concurrency: 4, startedAt: nil)
-        QueueStatusCard(running: false, total: 0, concurrency: 0, startedAt: nil)
-    }
-    .padding()
 }

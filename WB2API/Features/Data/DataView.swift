@@ -2,8 +2,8 @@ import SwiftUI
 
 /// 「数据」Tab：用量总览（按账号 / 模型 / 域），并通往积分与余额历史。
 struct DataView: View {
-    @Environment(SessionStore.self) private var session
-    @State private var loader = Loader<UsageSnapshot>()
+    @EnvironmentObject private var session: SessionStore
+    @StateObject private var loader = Loader<UsageSnapshot>()
     @State private var dimension: UsageDimension = .account
     @State private var range: UsageRange = .days7
 
@@ -12,7 +12,7 @@ struct DataView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Metrics.l) {
                     UsageRangePicker(selection: $range)
-                        .onChange(of: range) { _, newValue in changeRange(newValue) }
+                        .onChange(of: range) { newValue in changeRange(newValue) }
 
                     UsageRangeSummaryCard(range: range, totals: loader.value?.totals)
                         .staggeredAppear(index: 0)
@@ -36,7 +36,7 @@ struct DataView: View {
                             .staggeredAppear(index: 1)
 
                         if dimension.groups(in: snapshot).isEmpty {
-                            ContentUnavailableView {
+                            CompatEmptyState {
                                 Label("暂无分组数据", systemImage: "chart.bar")
                             } description: {
                                 Text(dimension.emptyDescription)
@@ -48,17 +48,13 @@ struct DataView: View {
                                 groups: dimension.groups(in: snapshot)
                             )
                             .staggeredAppear(index: 1)
-                            .scrollTransition(.interactive, axis: .vertical) { content, phase in
-                                content
-                                    .opacity(phase.isIdentity ? 1 : 0.6)
-                                    .scaleEffect(phase.isIdentity ? 1 : 0.98)
-                            }
+
                         }
 
                         DataHistoryLinks()
                             .staggeredAppear(index: 3)
                     } else {
-                        ContentUnavailableView {
+                        CompatEmptyState {
                             Label("暂无用量数据", systemImage: "chart.bar.xaxis")
                         } description: {
                             Text("先在面板产生一次请求，或下拉刷新。")
@@ -75,8 +71,8 @@ struct DataView: View {
             .refreshable { await load() }
             .task { await load() }
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("刷新", systemImage: "arrow.clockwise", action: refresh)
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    CompatIconButton("刷新", systemImage: "arrow.clockwise", action: refresh)
                         .disabled(loader.isLoading)
                 }
             }
@@ -110,9 +106,4 @@ struct DataView: View {
         loader.clearError()
         Task { await load() }
     }
-}
-
-#Preview {
-    DataView()
-        .environment(SessionStore())
 }

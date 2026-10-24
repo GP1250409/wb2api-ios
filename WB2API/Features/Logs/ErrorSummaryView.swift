@@ -2,9 +2,9 @@ import SwiftUI
 
 /// 错误汇总：扫描概览 + 按分组聚合的错误卡。
 struct ErrorSummaryView: View {
-    @Environment(SessionStore.self) private var session
+    @EnvironmentObject private var session: SessionStore
 
-    @State private var summary = Loader<ErrorSummary>()
+    @StateObject private var summary = Loader<ErrorSummary>()
 
     var body: some View {
         ScrollView {
@@ -29,7 +29,7 @@ struct ErrorSummaryView: View {
                     SectionHeader(title: "错误明细", subtitle: "按出现次数排序")
 
                     if value.rows.isEmpty {
-                        ContentUnavailableView(
+                        CompatEmptyState(
                             "没有记录到错误",
                             systemImage: "checkmark.seal",
                             description: Text("扫描窗口内没有异常日志")
@@ -52,8 +52,8 @@ struct ErrorSummaryView: View {
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await refresh() }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("刷新", systemImage: "arrow.clockwise", action: refreshNow)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                CompatIconButton("刷新", systemImage: "arrow.clockwise", action: refreshNow)
                     .labelStyle(.iconOnly)
             }
         }

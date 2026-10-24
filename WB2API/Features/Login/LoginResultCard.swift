@@ -9,7 +9,7 @@ struct LoginResultCard: View {
             Label("登录成功", systemImage: "checkmark.seal.fill")
                 .font(.headline)
                 .foregroundStyle(Accent.primary)
-                .symbolEffect(.bounce, value: result.uid)
+
 
             LabeledContent {
                 Text(result.uid ?? "—")
@@ -25,7 +25,7 @@ struct LoginResultCard: View {
             LabeledContent {
                 Text(Fmt.credits(result.credits))
                     .font(.body.monospacedDigit())
-                    .contentTransition(.numericText())
+
             } label: {
                 Text("积分")
             }

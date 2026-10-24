@@ -2,8 +2,8 @@ import SwiftUI
 
 /// 补偿：查看待领取补偿，并一键对所有账号执行领取。
 struct CompensationView: View {
-    @Environment(SessionStore.self) private var session
-    @State private var loader = Loader<JSONValue>()
+    @EnvironmentObject private var session: SessionStore
+    @StateObject private var loader = Loader<JSONValue>()
     @State private var isClaiming = false
     @State private var isConfirmingClaim = false
     @State private var toast: Toast?
@@ -21,11 +21,11 @@ struct CompensationView: View {
         .navigationTitle("补偿")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 if isClaiming {
                     ProgressView()
                 } else {
-                    Button("全部领取", systemImage: "hand.raised.fill", action: askClaim)
+                    CompatIconButton("全部领取", systemImage: "hand.raised.fill", action: askClaim)
                         .disabled(loader.value == nil)
                 }
             }

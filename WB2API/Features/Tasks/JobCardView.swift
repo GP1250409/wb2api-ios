@@ -43,10 +43,6 @@ struct JobCardView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .glassCard(cornerRadius: Metrics.radiusM)
-        .scrollTransition(.interactive) { content, phase in
-            content
-                .opacity(phase.isIdentity ? 1 : 0.55)
-                .scaleEffect(phase.isIdentity ? 1 : 0.97)
-        }
+
     }
 }

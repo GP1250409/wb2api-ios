@@ -14,7 +14,7 @@ struct ConfigFieldView: View {
             switch field.value {
             case .bool:
                 Toggle(field.key, isOn: $flag)
-                    .onChange(of: flag) { _, newValue in
+                    .onChange(of: flag) { newValue in
                         guard field.value.boolValue != newValue else { return }
                         onChange(.bool(newValue))
                     }
@@ -25,7 +25,7 @@ struct ConfigFieldView: View {
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .monospacedDigit()
-                        .onChange(of: number) { _, newValue in
+                        .onChange(of: number) { newValue in
                             let rounded = newValue.rounded()
                             guard Int(rounded) != field.value.intValue else { return }
                             onChange(.int(Int(rounded)))
@@ -38,7 +38,7 @@ struct ConfigFieldView: View {
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .monospacedDigit()
-                        .onChange(of: number) { _, newValue in
+                        .onChange(of: number) { newValue in
                             guard field.value.doubleValue != newValue else { return }
                             onChange(.double(newValue))
                         }
@@ -49,7 +49,7 @@ struct ConfigFieldView: View {
                     .lineLimit(1...4)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
-                    .onChange(of: text) { _, newValue in
+                    .onChange(of: text) { newValue in
                         guard field.value.stringValue != newValue else { return }
                         onChange(.string(newValue))
                     }
@@ -75,7 +75,7 @@ struct ConfigFieldView: View {
             }
         }
         .task { syncFromValue() }
-        .onChange(of: field.value) { _, _ in syncFromValue() }
+        .onChange(of: field.value) { _ in syncFromValue() }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(field.key)，\(field.typeLabel)")
     }

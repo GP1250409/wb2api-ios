@@ -2,15 +2,14 @@ import SwiftUI
 
 /// 账号 Tab：搜索 + 筛选 + 点按进详情（zoom 转场因玻璃卡掉帧已移除）。
 struct AccountsView: View {
-    @Environment(SessionStore.self) private var session
-    @State private var model = AccountsModel()
+    @EnvironmentObject private var session: SessionStore
+    @StateObject private var model = AccountsModel()
     @State private var path = NavigationPath()
     @State private var reloginAccount: Account?
     @Namespace private var zoomNamespace
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
-        @Bindable var model = model
 
         NavigationStack(path: $path) {
             AccountListSection(
@@ -34,7 +33,7 @@ struct AccountsView: View {
                 AccountDetailView(account: account)
             }
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink {
                         LogsView()
                     } label: {
@@ -42,10 +41,10 @@ struct AccountsView: View {
                     }
                     .labelStyle(.iconOnly)
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     filterMenu
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     // 不 disable：轮询期间点击也要能强制重发，转圈只是反馈
                     Button(action: reload) {
                         if model.isLoading || model.isReloading {
@@ -58,17 +57,17 @@ struct AccountsView: View {
                     .accessibilityLabel("刷新账号状态")
                 }
             }
-            .animation(Motion.snappy, value: model.filter)
+            .animation(Motion.compatSnappy, value: model.filter)
             .sheet(item: $reloginAccount) { account in
                 ReloginView(account: account)
-                    .environment(session)
+                    .environmentObject(session)
             }
             .toast($model.toast)
             .task { await poll() }
             .onAppear {
                 Task { await model.refreshIfStale(after: 3, using: session.client()) }
             }
-            .onChange(of: scenePhase) { _, phase in
+            .onChange(of: scenePhase) { phase in
                 // 从后台回来时拉一次（仅轻量读缓存级 overview，不触发上游同步）
                 guard phase == .active else { return }
                 Task { await model.refreshIfStale(after: 3, using: session.client()) }
@@ -91,7 +90,7 @@ struct AccountsView: View {
 
             if model.filter != .all {
                 Divider()
-                Button("显示全部", systemImage: "arrow.uturn.backward") {
+                CompatIconButton("显示全部", systemImage: "arrow.uturn.backward") {
                     model.filter = .all
                 }
             }

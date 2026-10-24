@@ -15,7 +15,7 @@ struct RingGauge<Content: View>: View {
                 .trim(from: 0, to: min(max(progress, 0), 1))
                 .stroke(tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .animation(.bouncy, value: progress)
+                .animation(.compatBouncy, value: progress)
             content()
         }
         .accessibilityElement(children: .combine)

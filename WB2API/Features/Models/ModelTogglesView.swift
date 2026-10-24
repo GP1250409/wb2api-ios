@@ -7,7 +7,7 @@ import SwiftUI
 struct ModelTogglesView: View {
     let account: Account
 
-    @Environment(SessionStore.self) private var session
+    @EnvironmentObject private var session: SessionStore
     @State private var models: [ModelInfo] = []
     @State private var offModels: Set<String> = []
     @State private var query = ""
@@ -62,7 +62,7 @@ struct ModelTogglesView: View {
                         .listRowBackground(Color.clear)
                 }
             } else if filtered.isEmpty {
-                ContentUnavailableView.search(text: query)
+                CompatEmptyState.search(text: query)
                     .listRowSeparator(.hidden)
             } else {
                 Section {
@@ -96,7 +96,7 @@ struct ModelTogglesView: View {
                             .font(.caption2)
                             .padding(.horizontal, 5)
                             .padding(.vertical, 1)
-                            .background(.quaternary, in: .capsule)
+                            .background(.quaternary, in: Capsule())
                     }
                 }
                 HStack(spacing: Metrics.s) {

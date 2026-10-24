@@ -2,10 +2,10 @@ import SwiftUI
 
 /// 模型目录：搜索 + 默认/繁忙标记 + 详情导航 + 探测结果弹层。
 struct ModelsView: View {
-    @Environment(SessionStore.self) private var session
+    @EnvironmentObject private var session: SessionStore
 
-    @State private var models = Loader<ModelsResponse>()
-    @State private var probes = Loader<JSONValue>()
+    @StateObject private var models = Loader<ModelsResponse>()
+    @StateObject private var probes = Loader<JSONValue>()
     @State private var searchText = ""
     @State private var isShowingProbes = false
 
@@ -27,13 +27,13 @@ struct ModelsView: View {
                         .listRowSeparator(.hidden)
                 } else if visibleModels.isEmpty {
                     if searchText.isEmpty {
-                        ContentUnavailableView(
+                        CompatEmptyState(
                             "暂无模型",
                             systemImage: "square.stack.3d.up.slash",
                             description: Text("面板还没有返回模型目录")
                         )
                     } else {
-                        ContentUnavailableView.search
+                        CompatEmptyState.search
                     }
                 } else {
                     ForEach(visibleModels) { model in
@@ -60,12 +60,12 @@ struct ModelsView: View {
             ModelDetailView(model: model)
         }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("模型探测", systemImage: "waveform.path.ecg", action: openProbes)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                CompatIconButton("模型探测", systemImage: "waveform.path.ecg", action: openProbes)
                     .labelStyle(.iconOnly)
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("刷新", systemImage: "arrow.clockwise", action: refresh)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                CompatIconButton("刷新", systemImage: "arrow.clockwise", action: refresh)
                     .labelStyle(.iconOnly)
             }
         }

@@ -5,9 +5,9 @@ struct LogsView: View {
     /// 只看与该账号相关的日志（昵称 / UID 前缀，大小写不敏感）。
     var keyword: String?
 
-    @Environment(SessionStore.self) private var session
+    @EnvironmentObject private var session: SessionStore
 
-    @State private var logs = Loader<LogsResponse>()
+    @StateObject private var logs = Loader<LogsResponse>()
     @State private var channel: LogChannel = .all
     @State private var isAutoRefreshEnabled = true
     @State private var filterKeyword: String?
@@ -60,7 +60,7 @@ struct LogsView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 } else if visibleEntries.isEmpty {
-                    ContentUnavailableView(
+                    CompatEmptyState(
                         "暂无日志",
                         systemImage: "text.alignleft",
                         description: Text("该通道还没有记录")
@@ -94,7 +94,7 @@ struct LogsView: View {
         }
         .refreshable { await refreshLogs() }
         .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
                 NavigationLink(value: LogsRoute.requestLogs) {
                     Label("请求日志", systemImage: "arrow.left.arrow.right")
                 }

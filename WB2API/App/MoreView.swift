@@ -113,8 +113,3 @@ struct MoreView: View {
         }
     }
 }
-
-#Preview {
-    MoreView()
-        .environment(SessionStore())
-}

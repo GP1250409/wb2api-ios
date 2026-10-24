@@ -18,11 +18,7 @@ struct AccountListRow: View {
                 .glassInteractive(cornerRadius: Metrics.radiusM)
         }
         .buttonStyle(.plain)
-        .scrollTransition(.interactive, axis: .vertical) { content, phase in
-            content
-                .opacity(phase.isIdentity ? 1 : 0.6)
-                .scaleEffect(phase.isIdentity ? 1 : 0.97)
-        }
+
         .contextMenu {
             Button {
                 onAction(.checkin)

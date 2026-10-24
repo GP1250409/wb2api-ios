@@ -9,7 +9,7 @@ struct ErrorBanner: View {
         HStack(spacing: Metrics.s) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.red)
-                .symbolEffect(.wiggle, value: message)
+
             Text(message)
                 .font(.footnote)
                 .foregroundStyle(.primary)
@@ -17,10 +17,10 @@ struct ErrorBanner: View {
             Spacer(minLength: 0)
             Button("重试", action: retry)
                 .font(.footnote.bold())
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
         }
         .padding(Metrics.m)
-        .glassEffect(.regular.tint(.red.opacity(0.12)), in: .rect(cornerRadius: Metrics.radiusM))
+        .compatGlassEffect(.regular.tint(.red.opacity(0.12)), in: RoundedRectangle(cornerRadius: Metrics.radiusM))
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 }

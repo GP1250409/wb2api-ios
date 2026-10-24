@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 设置：服务器地址、访问密钥、连接测试、关于与退出登录。
 struct SettingsView: View {
-    @Environment(SessionStore.self) private var session
+    @EnvironmentObject private var session: SessionStore
 
     @State private var keyDraft = ""
     @State private var isTesting = false
@@ -20,7 +20,6 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        @Bindable var session = session
 
         Form {
             Section {
@@ -43,7 +42,7 @@ struct SettingsView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
 
-                Button("保存密钥", systemImage: "key.fill", action: saveKey)
+                CompatIconButton("保存密钥", systemImage: "key.fill", action: saveKey)
                     .disabled(!canSaveKey)
             } header: {
                 Text("访问密钥")
@@ -67,7 +66,7 @@ struct SettingsView: View {
                     Label(testMessage, systemImage: testPassed ? "checkmark.circle.fill" : "xmark.octagon.fill")
                         .font(.footnote)
                         .foregroundStyle(testPassed ? Color.green : Color.red)
-                        .symbolEffect(.bounce, value: testPassed)
+
                 }
             } header: {
                 Text("诊断")
@@ -87,7 +86,7 @@ struct SettingsView: View {
             }
 
             Section {
-                Button("退出登录", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive, action: askSignOut)
+                CompatIconButton("退出登录", systemImage: "rectangle.portrait.and.arrow.right", role: .destructive, action: askSignOut)
             } footer: {
                 Text("退出后需要重新填写 api_key 才能访问面板。")
             }
@@ -159,11 +158,4 @@ struct SettingsView: View {
     private func signOut() {
         session.signOut()
     }
-}
-
-#Preview {
-    NavigationStack {
-        SettingsView()
-    }
-    .environment(SessionStore())
 }

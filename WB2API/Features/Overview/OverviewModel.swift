@@ -1,17 +1,27 @@
 import Foundation
-import Observation
+import Combine
 
 /// 概览页的数据与操作。
 ///
 /// 账号数据统一来自 `client.overview()`——公网 nginx 没有暴露 `/status`。
 @MainActor
-@Observable
-final class OverviewModel {
+final class OverviewModel: ObservableObject {
+    private var loaderSubscriptions: Set<AnyCancellable> = []
+
+    init() {
+        loader.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }.store(in: &loaderSubscriptions)
+        usageLoader.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }.store(in: &loaderSubscriptions)
+    }
+
     private let loader = Loader<OverviewResponse>()
     private let usageLoader = Loader<UsageSnapshot>()
 
-    var toast: Toast?
-    private(set) var runningBatch: BatchAction?
+    @Published var toast: Toast?
+    @Published private(set) var runningBatch: BatchAction?
 
     var overview: OverviewResponse? { loader.value }
     /// usage 快照（今日 tokens 与用量趋势共用）

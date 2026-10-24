@@ -1,14 +1,13 @@
 import Foundation
-import Observation
+import Combine
 
 /// 通用加载器：统一 isLoading / error / value 三态，避免每个页面重写一遍。
 @MainActor
-@Observable
-final class Loader<Value> {
-    private(set) var value: Value?
-    private(set) var error: String?
-    private(set) var isLoading = false
-    private(set) var lastUpdated: Date?
+final class Loader<Value>: ObservableObject {
+    @Published private(set) var value: Value?
+    @Published private(set) var error: String?
+    @Published private(set) var isLoading = false
+    @Published private(set) var lastUpdated: Date?
 
     var isEmpty: Bool { value == nil && error == nil }
 

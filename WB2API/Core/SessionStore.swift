@@ -1,21 +1,20 @@
 import Foundation
-import Observation
+import Combine
 
 /// 全局会话：服务器地址 + api_key + 客户端工厂。
 /// 地址存 UserDefaults，密钥存 Keychain。
 @MainActor
-@Observable
-final class SessionStore {
+final class SessionStore: ObservableObject {
     /// 不预置任何服务地址：由使用者填入自己部署的面板。
     static let defaultBaseURL = ""
 
     private static let baseURLKey = "wb2api.baseURL"
 
-    var baseURLString: String {
+    @Published var baseURLString: String {
         didSet { UserDefaults.standard.set(baseURLString, forKey: Self.baseURLKey) }
     }
 
-    private(set) var apiKey: String
+    @Published private(set) var apiKey: String
     var isConfigured: Bool {
         !apiKey.isEmpty && !baseURLString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }

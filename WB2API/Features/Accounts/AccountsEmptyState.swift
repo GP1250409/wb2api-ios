@@ -13,9 +13,9 @@ struct AccountsEmptyState: View {
     var body: some View {
         Group {
             if isSearching {
-                ContentUnavailableView.search(text: query)
+                CompatEmptyState.search(text: query)
             } else {
-                ContentUnavailableView {
+                CompatEmptyState {
                     Label(title, systemImage: systemImage)
                 } description: {
                     Text(message)

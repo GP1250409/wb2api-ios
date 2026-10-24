@@ -47,7 +47,7 @@ struct UsageRangePicker: View {
         HStack(spacing: Metrics.s) {
             ForEach(UsageRange.allCases) { item in
                 Button {
-                    withAnimation(Motion.snappy) { selection = item }
+                    withAnimation(Motion.compatSnappy) { selection = item }
                 } label: {
                     Text(item.title)
                         .font(.footnote.weight(selection == item ? .bold : .regular))
@@ -94,7 +94,7 @@ struct UsageRangeSummaryCard: View {
                     Text(Fmt.tokens(tokens))
                         .font(.system(size: 40, weight: .semibold, design: .rounded))
                         .monospacedDigit()
-                        .contentTransition(.numericText())
+
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                     Text("tokens")

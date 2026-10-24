@@ -13,7 +13,7 @@ struct QueueActionLabel: View {
                     .controlSize(.small)
             } else {
                 Image(systemName: systemImage)
-                    .symbolEffect(.bounce, value: isBusy)
+
             }
             Text(title)
         }

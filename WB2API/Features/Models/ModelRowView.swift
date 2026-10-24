@@ -17,7 +17,7 @@ struct ModelRowView: View {
                 }
                 if model.isBusy {
                     StatusTag(text: "繁忙", systemImage: "hourglass", tint: .orange)
-                        .symbolEffect(.pulse, options: .repeating, isActive: model.isBusy)
+
                 }
             }
 
@@ -38,25 +38,5 @@ struct ModelRowView: View {
         }
         .padding(.vertical, Metrics.xs)
         .accessibilityElement(children: .combine)
-    }
-}
-
-#Preview {
-    List {
-        ModelRowView(model: ModelInfo(
-            modelId: "cn:glm-5.2",
-            name: "账号1",
-            credits: "x0.79",
-            contextLength: 1_000_000,
-            description: "1M 上下文，擅长长程任务",
-            supportsImages: true,
-            supportsReasoning: true,
-            supportsToolCall: true,
-            isDefault: true,
-            maxOutputTokens: 64_000,
-            defaultEffort: "high",
-            onlyReasoning: true,
-            busy: "busy"
-        ))
     }
 }

@@ -2,7 +2,7 @@ name: WB2API
 options:
   bundleIdPrefix: org.example
   deploymentTarget:
-    iOS: "26.0"
+    iOS: "16.0"
   createIntermediateGroups: true
 
 settings:
@@ -23,7 +23,7 @@ targets:
         PRODUCT_NAME: WB2API
         GENERATE_INFOPLIST_FILE: YES
         MARKETING_VERSION: "1.3.0"
-        CURRENT_PROJECT_VERSION: "24"
+        CURRENT_PROJECT_VERSION: "25"
         INFOPLIST_KEY_CFBundleDisplayName: WorkBuddy
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES

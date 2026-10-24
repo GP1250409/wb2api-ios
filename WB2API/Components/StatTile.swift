@@ -15,7 +15,7 @@ struct StatTile: View {
             Text(value)
                 .font(.metricSmall())
                 .foregroundStyle(tint)
-                .contentTransition(.numericText())
+
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             if let caption {

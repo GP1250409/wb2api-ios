@@ -40,7 +40,7 @@ struct ModelLocksCard: View {
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(.quaternary, in: .capsule)
+                    .background(.quaternary, in: Capsule())
                 Spacer()
                 StatusTag(text: lock.stateLabel, systemImage: "lock.fill", tint: lock.stateTint)
             }
@@ -58,7 +58,7 @@ struct ModelLocksCard: View {
             }
         }
         .padding(Metrics.s)
-        .background(.quaternary.opacity(0.4), in: .rect(cornerRadius: Metrics.radiusS))
+        .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: Metrics.radiusS))
         .transition(.opacity.combined(with: .move(edge: .top)))
     }
 }

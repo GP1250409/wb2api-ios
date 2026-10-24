@@ -2,8 +2,8 @@ import SwiftUI
 
 /// 配置：按顶层 key 分组的原生表单 + 高级 JSON 编辑。
 struct ConfigView: View {
-    @Environment(SessionStore.self) private var session
-    @State private var editor = ConfigEditor()
+    @EnvironmentObject private var session: SessionStore
+    @StateObject private var editor = ConfigEditor()
     @State private var isLoading = false
     @State private var errorText: String?
     @State private var isSaving = false
@@ -23,7 +23,7 @@ struct ConfigView: View {
                     LoadingSkeleton(rows: 6)
                 }
             } else if !editor.isLoaded {
-                ContentUnavailableView {
+                CompatEmptyState {
                     Label("配置未加载", systemImage: "slider.horizontal.3")
                 } description: {
                     Text("下拉刷新重新获取面板配置。")
@@ -54,8 +54,8 @@ struct ConfigView: View {
                 }
 
                 Section {
-                    Button("高级 JSON 编辑", systemImage: "curlybraces", action: presentJSON)
-                    Button("还原改动", systemImage: "arrow.uturn.backward", action: revert)
+                    CompatIconButton("高级 JSON 编辑", systemImage: "curlybraces", action: presentJSON)
+                    CompatIconButton("还原改动", systemImage: "arrow.uturn.backward", action: revert)
                         .disabled(!editor.isDirty)
                 } footer: {
                     Text("数组、嵌套对象等复杂字段请在高级 JSON 编辑中修改。")
@@ -67,7 +67,7 @@ struct ConfigView: View {
         .refreshable { await load() }
         .task { await load() }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .navigationBarTrailing) {
                 if isSaving {
                     ProgressView()
                         .accessibilityLabel("正在保存")
@@ -128,11 +128,4 @@ struct ConfigView: View {
     private func presentJSON() {
         isJSONPresented = true
     }
-}
-
-#Preview {
-    NavigationStack {
-        ConfigView()
-    }
-    .environment(SessionStore())
 }

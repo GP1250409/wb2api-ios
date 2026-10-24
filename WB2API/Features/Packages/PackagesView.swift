@@ -2,8 +2,8 @@ import SwiftUI
 
 /// 礼包：按账号分组展示剩余 / 已用 / 总量。
 struct PackagesView: View {
-    @Environment(SessionStore.self) private var session
-    @State private var loader = Loader<PackagesResponse>()
+    @EnvironmentObject private var session: SessionStore
+    @StateObject private var loader = Loader<PackagesResponse>()
 
     private var accounts: [PackageAccount] {
         loader.value?.accounts ?? []
@@ -26,7 +26,7 @@ struct PackagesView: View {
                         .listRowBackground(Color.clear)
                 }
             } else if accounts.isEmpty {
-                ContentUnavailableView {
+                CompatEmptyState {
                     Label("没有礼包", systemImage: "gift")
                 } description: {
                     Text("面板尚未返回任何账号礼包。")
@@ -61,8 +61,8 @@ struct PackagesView: View {
         .refreshable { await load() }
         .task { await load() }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("刷新", systemImage: "arrow.clockwise", action: refresh)
+            ToolbarItem(placement: .navigationBarTrailing) {
+                CompatIconButton("刷新", systemImage: "arrow.clockwise", action: refresh)
                     .disabled(loader.isLoading)
             }
         }
@@ -91,11 +91,4 @@ struct PackagesView: View {
         if let uid = account.uid, !uid.isEmpty { return String(uid.prefix(8)) }
         return "未知账号"
     }
-}
-
-#Preview {
-    NavigationStack {
-        PackagesView()
-    }
-    .environment(SessionStore())
 }

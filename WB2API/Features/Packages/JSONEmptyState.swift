@@ -6,7 +6,7 @@ struct JSONEmptyState: View {
     let systemImage: String
 
     var body: some View {
-        ContentUnavailableView {
+        CompatEmptyState {
             Label(title, systemImage: systemImage)
         } description: {
             Text("接口没有返回可展示的内容，下拉可重新获取。")

@@ -25,7 +25,7 @@ struct UsageBarChart: View {
             )
 
             if items.isEmpty {
-                ContentUnavailableView {
+                CompatEmptyState {
                     Label("暂无分组数据", systemImage: "chart.bar")
                 } description: {
                     Text("换一个维度或刷新后再看。")

@@ -17,7 +17,7 @@ struct ErrorRowView: View {
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, Metrics.s)
                         .padding(.vertical, Metrics.xs / 2)
-                        .background(.quaternary, in: .capsule)
+                        .background(.quaternary, in: Capsule())
                 }
 
                 Spacer(minLength: Metrics.xs)
@@ -25,7 +25,7 @@ struct ErrorRowView: View {
                 Text("\(row.count ?? 0)")
                     .font(.metricSmall())
                     .foregroundStyle(tint)
-                    .contentTransition(.numericText())
+
                 Text("次")
                     .font(.caption)
                     .foregroundStyle(.secondary)

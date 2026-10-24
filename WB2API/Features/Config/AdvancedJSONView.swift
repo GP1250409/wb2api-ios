@@ -3,7 +3,7 @@ import SwiftUI
 
 /// 高级编辑：整份配置的 JSON 文本编辑 + 实时校验，以 sheet 呈现。
 struct AdvancedJSONView: View {
-    let editor: ConfigEditor
+    @ObservedObject var editor: ConfigEditor
 
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
@@ -21,7 +21,7 @@ struct AdvancedJSONView: View {
                 .focused($isEditing)
                 .scrollContentBackground(.hidden)
                 .padding(Metrics.s)
-                .background(.quaternary, in: .rect(cornerRadius: Metrics.radiusM))
+                .background(.quaternary, in: RoundedRectangle(cornerRadius: Metrics.radiusM))
                 .padding(Metrics.m)
                 .safeAreaInset(edge: .bottom) {
                     if let validationError {
@@ -29,9 +29,9 @@ struct AdvancedJSONView: View {
                             .font(.footnote)
                             .foregroundStyle(.red)
                             .padding(Metrics.m)
-                            .glassEffect(
+                            .compatGlassEffect(
                                 .regular.tint(.red.opacity(0.12)),
-                                in: .rect(cornerRadius: Metrics.radiusM)
+                                in: RoundedRectangle(cornerRadius: Metrics.radiusM)
                             )
                             .padding(.horizontal, Metrics.m)
                             .padding(.bottom, Metrics.s)
@@ -48,12 +48,12 @@ struct AdvancedJSONView: View {
                             .disabled(!isValid)
                     }
                     ToolbarItem(placement: .bottomBar) {
-                        Button("格式化", systemImage: "text.alignleft", action: format)
+                        CompatIconButton("格式化", systemImage: "text.alignleft", action: format)
                             .disabled(!isValid)
                     }
                 }
                 .task { loadDraft() }
-                .onChange(of: text) { _, _ in validate() }
+                .onChange(of: text) { _ in validate() }
         }
     }
 

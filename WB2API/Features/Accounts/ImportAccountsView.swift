@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 /// 后端接收 multipart 的 `file` 字段（32MB 上限），返回
 /// `{ok, total, imported, skipped, errors}`；这里只负责选文件、上传、呈现结果。
 struct ImportAccountsView: View {
-    @Environment(SessionStore.self) private var session
+    @EnvironmentObject private var session: SessionStore
 
     @State private var isPicking = false
     @State private var isUploading = false
@@ -35,7 +35,7 @@ struct ImportAccountsView: View {
                         }
                         .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                     .disabled(isUploading)
                 }

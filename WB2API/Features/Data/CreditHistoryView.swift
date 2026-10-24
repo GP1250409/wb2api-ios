@@ -5,8 +5,8 @@ import SwiftUI
 /// 账本是「每次真实查到余额」与上一次比对后的留痕，所以刷新要先把上游余额拉一遍
 /// （`POST /balance_all`），否则只是重读本地账本，看到的历史不会变。
 struct CreditHistoryView: View {
-    @Environment(SessionStore.self) private var session
-    @State private var loader = Loader<CreditHistory>()
+    @EnvironmentObject private var session: SessionStore
+    @StateObject private var loader = Loader<CreditHistory>()
     @State private var isSyncing = false
 
     private var entries: [CreditEntry] {
@@ -34,7 +34,7 @@ struct CreditHistoryView: View {
                         .listRowBackground(Color.clear)
                 }
             } else if entries.isEmpty {
-                ContentUnavailableView {
+                CompatEmptyState {
                     Label("暂无积分记录", systemImage: "creditcard")
                 } description: {
                     Text("下拉刷新会连上游一起同步余额，产生变动后这里就有记录了。")
@@ -63,8 +63,8 @@ struct CreditHistoryView: View {
         .refreshable { await load(syncUpstream: true) }
         .task { await load() }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("刷新", systemImage: "arrow.clockwise") {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                CompatIconButton("刷新", systemImage: "arrow.clockwise") {
                     Task { await load(syncUpstream: true) }
                 }
                 .disabled(loader.isLoading || isSyncing)

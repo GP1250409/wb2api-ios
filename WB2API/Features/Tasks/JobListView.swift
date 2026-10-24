@@ -15,7 +15,7 @@ struct JobListView: View {
             SectionHeader(title: "任务作业", subtitle: "\(entries.count) 项记录")
 
             if entries.isEmpty {
-                ContentUnavailableView(
+                CompatEmptyState(
                     "暂无作业",
                     systemImage: "tray",
                     description: Text("队列空闲时不会生成作业记录")

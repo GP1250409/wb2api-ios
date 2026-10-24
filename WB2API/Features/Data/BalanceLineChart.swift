@@ -11,7 +11,7 @@ struct BalanceLineChart: View {
 
     var body: some View {
         if plottable.isEmpty {
-            ContentUnavailableView {
+            CompatEmptyState {
                 Label("暂无余额曲线", systemImage: "chart.xyaxis.line")
             } description: {
                 Text("面板还没有攒够余额快照。")

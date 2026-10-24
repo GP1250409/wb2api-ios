@@ -10,7 +10,7 @@ struct RequestLogRowView: View {
                 Text(statusText)
                     .font(.footnote.monospacedDigit().bold())
                     .foregroundStyle(tint)
-                    .contentTransition(.numericText())
+
                 if let outcome = row.outcome {
                     Text(outcome)
                         .font(.tag)
@@ -57,18 +57,4 @@ struct RequestLogRowView: View {
         if row.isOK { return .green }
         return (row.status ?? 500) >= 500 ? .red : .orange
     }
-}
-
-#Preview {
-    RequestLogRowView(row: RequestLogRow(index: 0, value: .object([
-        "status": .int(503),
-        "model": .string("cn:glm-5.3-flash"),
-        "account": .string("账号1"),
-        "path": .string("config.json"),
-        "duration_ms": .double(19_658),
-        "attempts": .int(2),
-        "total_tokens": .int(101_872),
-        "outcome": .string("interrupted")
-    ])))
-    .padding()
 }

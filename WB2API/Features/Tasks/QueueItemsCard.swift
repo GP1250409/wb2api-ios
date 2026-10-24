@@ -23,7 +23,7 @@ struct QueueItemsCard: View {
             )
 
             if lines.isEmpty {
-                ContentUnavailableView(
+                CompatEmptyState(
                     "队列为空",
                     systemImage: "list.bullet",
                     description: Text("点「扫描全部」后再执行，队列明细会出现在这里")

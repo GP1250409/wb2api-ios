@@ -19,17 +19,17 @@ struct ToastOverlay: ViewModifier {
                         .font(.footnote.weight(.medium))
                         .padding(.horizontal, Metrics.m)
                         .padding(.vertical, Metrics.s + 2)
-                        .glassEffect(.regular.interactive(), in: .capsule)
+                        .compatGlassEffect(.regular.interactive(), in: Capsule())
                         .padding(.top, Metrics.s)
                         .transition(AnyTransition.move(edge: .top).combined(with: .opacity))
                         .task(id: toast.id) {
                             try? await Task.sleep(for: .seconds(2.2))
-                            withAnimation(Animation.snappy) { self.toast = nil }
+                            withAnimation(Animation.compatSnappy) { self.toast = nil }
                         }
                 }
             }
-            .animation(Animation.snappy, value: toast?.id)
-            .sensoryFeedback(.success, trigger: toast?.id)
+            .animation(Animation.compatSnappy, value: toast?.id)
+
     }
 
     private func icon(for kind: Toast.Kind) -> String {

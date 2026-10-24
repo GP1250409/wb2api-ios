@@ -1,5 +1,5 @@
 import Foundation
-import Observation
+import Combine
 
 /// 单次执行结果（跨任务组回传用，必须 Sendable）。
 struct TaskRunResult: Sendable {
@@ -12,19 +12,18 @@ struct TaskRunResult: Sendable {
 /// 后端对同一账号有 per-account 互斥锁（并发进会 409），所以并发单位是账号而不是任务；
 /// 账号内一个跑完再跑下一个，既符合后端约束，也让上游看到的是正常节奏。
 @MainActor
-@Observable
-final class TaskRunController {
-    private(set) var states: [String: TaskRunState] = [:]
-    private(set) var isRunning = false
-    private(set) var total = 0
-    private(set) var finishedCount = 0
+final class TaskRunController: ObservableObject {
+    @Published private(set) var states: [String: TaskRunState] = [:]
+    @Published private(set) var isRunning = false
+    @Published private(set) var total = 0
+    @Published private(set) var finishedCount = 0
     /// 真正跑完的任务 id（停止后用来只清掉已完成的选择）
-    private(set) var finishedIDs: Set<String> = []
+    @Published private(set) var finishedIDs: Set<String> = []
 
     /// 账号并发数（后端 per-account 锁允许的最大并行度）
     private let accountConcurrency = 2
 
-    private var stopRequested = false
+    @Published private var stopRequested = false
 
     var progressText: String { "\(finishedCount)/\(total)" }
 
