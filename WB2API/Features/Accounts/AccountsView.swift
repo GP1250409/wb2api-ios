@@ -43,6 +43,7 @@ struct AccountsView: View {
             }
             .animation(Motion.snappy, value: model.filter)
             .toast($model.toast)
+            .task { await poll() }
             .onAppear {
                 Task { await model.refreshIfStale(after: 3, using: session.client()) }
             }
@@ -83,6 +84,19 @@ struct AccountsView: View {
         }
         .labelStyle(.iconOnly)
         .accessibilityLabel("筛选账号")
+    }
+
+    /// 页面可见时每 20 秒读一次 overview（本地接口 ~1s，不打上游），
+    /// 保证冷却/禁用/余额状态不会停在旧值。
+    private func poll() async {
+        while !Task.isCancelled {
+            do {
+                try await Task.sleep(for: .seconds(20))
+            } catch {
+                return
+            }
+            await model.refreshIfStale(after: 10, using: session.client())
+        }
     }
 
     private func reload() {

@@ -19,6 +19,18 @@ struct AccountListSection: View {
 
     var body: some View {
         List {
+            if let updated = model.lastUpdated {
+                HStack(spacing: Metrics.xs) {
+                    Image(systemName: "clock.arrow.circlepath")
+                    Text("更新于 \(updated, format: .dateTime.hour().minute().second())")
+                    Spacer()
+                }
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .listRowInsets(EdgeInsets(top: Metrics.xs, leading: Metrics.m, bottom: 0, trailing: Metrics.m))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
             if let message = model.error {
                 ErrorBanner(message: message, retry: onReload)
                     .listRowInsets(rowInsets)

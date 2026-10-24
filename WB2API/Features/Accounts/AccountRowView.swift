@@ -50,6 +50,9 @@ struct AccountRowView: View {
     }
 
     private var statusLine: String {
+        if let left = account.coolingLeft {
+            return "冷却中 · \(left)后恢复"
+        }
         var parts = [AccountStatusStyle.text(for: account), Fmt.ago(account.lastSuccess)]
         if account.checkinDone == false {
             parts.append("未签到")

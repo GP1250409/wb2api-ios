@@ -139,6 +139,15 @@ struct Account: Codable, Identifiable, Sendable {
     }
 
     var isCooling: Bool { cooling ?? false }
+
+    /// 冷却剩余（"8 分"）；已到期或未冷却返回 nil。
+    var coolingLeft: String? {
+        guard isCooling, let until, let date = Fmt.parse(until), date > Date() else { return nil }
+        let seconds = date.timeIntervalSinceNow
+        if seconds < 90 { return "\(Int(seconds)) 秒" }
+        if seconds < 3600 { return "\(Int(seconds / 60)) 分" }
+        return "\(Int(seconds / 3600)) 小时 \(Int(seconds.truncatingRemainder(dividingBy: 3600) / 60)) 分"
+    }
     var isDisabled: Bool { disabled ?? false }
     var isHealthy: Bool { !isCooling && !isDisabled }
 
