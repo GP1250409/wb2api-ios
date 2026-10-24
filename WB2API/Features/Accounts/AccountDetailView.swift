@@ -181,11 +181,10 @@ struct AccountDetailView: View {
         Task {
             let removed = await model.remove(account, using: session.client())
             guard removed else { return }
-            withAnimation(Motion.emphasized) {
-                isLeaving = true
-            } completion: {
-                dismiss()
-            }
+            // iOS 16 has no SwiftUI animation-completion overload.
+            // The server has confirmed removal; let NavigationStack animate dismissal.
+            isLeaving = true
+            dismiss()
         }
     }
 }
