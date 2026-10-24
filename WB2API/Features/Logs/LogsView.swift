@@ -2,11 +2,15 @@ import SwiftUI
 
 /// 日志：每 5 秒自动刷新的实时流，按通道筛选，并可进入请求日志与错误汇总。
 struct LogsView: View {
+    /// 只看与该账号相关的日志（昵称 / UID 前缀，大小写不敏感）。
+    var keyword: String?
+
     @Environment(SessionStore.self) private var session
 
     @State private var logs = Loader<LogsResponse>()
     @State private var channel: LogChannel = .all
     @State private var isAutoRefreshEnabled = true
+    @State private var filterKeyword: String?
 
     var body: some View {
         List {
@@ -24,6 +28,19 @@ struct LogsView: View {
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
+                }
+            }
+
+            if let key = filterKeyword, !key.isEmpty {
+                Section {
+                    HStack(spacing: Metrics.s) {
+                        Label("仅看 \(key)", systemImage: "line.3.horizontal.decrease.circle.fill")
+                            .font(.footnote)
+                            .foregroundStyle(Accent.primary)
+                        Spacer(minLength: 0)
+                        Button("清除") { filterKeyword = nil }
+                            .font(.footnote)
+                    }
                 }
             }
 
@@ -93,6 +110,7 @@ struct LogsView: View {
             }
         }
         .task(id: isAutoRefreshEnabled) { await autoRefresh() }
+        .onAppear { filterKeyword = filterKeyword ?? keyword }
     }
 
     private var isInitialLoading: Bool {
@@ -107,7 +125,10 @@ struct LogsView: View {
     /// 最新一条在最上面，符合「实时日志」的阅读顺序。
     private var visibleEntries: [LogEntry] {
         let entries = logs.value?.entries ?? []
-        let filtered = channel == .all ? entries : entries.filter { channel.matches($0.ch) }
+        var filtered = channel == .all ? entries : entries.filter { channel.matches($0.ch) }
+        if let key = filterKeyword, !key.isEmpty {
+            filtered = filtered.filter { ($0.text ?? "").localizedCaseInsensitiveContains(key) }
+        }
         return Array(filtered.reversed())
     }
 

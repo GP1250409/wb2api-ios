@@ -50,6 +50,9 @@ struct AccountRowView: View {
     }
 
     private var statusLine: String {
+        if account.needsLogin {
+            return account.isDisabled ? "需重新登录 · 登录态已失效" : "登录态异常 · 建议重新登录"
+        }
         if let left = account.coolingLeft {
             return "冷却中 · \(left)后恢复"
         }

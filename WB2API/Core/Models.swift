@@ -126,6 +126,8 @@ struct Account: Codable, Identifiable, Sendable {
     let modelOff: [ModelOffEntry]?
     let realm: String?
     let disabled: Bool?
+    /// 禁用原因（后端 disabled_reason，通常会写明 12153 会话失效）
+    let disabledReason: String?
     let successCount: Int?
     let lastSuccess: String?
     let lastErr: String?
@@ -150,6 +152,27 @@ struct Account: Codable, Identifiable, Sendable {
     }
     var isDisabled: Bool { disabled ?? false }
     var isHealthy: Bool { !isCooling && !isDisabled }
+
+    /// 需要交互式重新登录：已被禁用，或连续出现会话失效（12153）计数。
+    /// 这两种情况下点「复活」是没用的（refresh token 也失效了），必须重新授权。
+    var needsLogin: Bool {
+        isDisabled || (sessionDeadFails ?? 0) > 0
+    }
+
+    /// 给用户看的一句话：现在是什么状态、该做什么。
+    var actionHint: String? {
+        if isDisabled {
+            return disabledReason.isEmpty ? "账号已禁用，通常是登录态失效，需要重新登录授权" : disabledReason
+        }
+        if let fails = sessionDeadFails, fails > 0 {
+            return "登录态已失效（连续 \(fails) 次会话失效），请重新登录"
+        }
+        if isCooling {
+            if let left = coolingLeft { return "限流冷却中，\(left)后自动恢复，无需操作" }
+            return "限流冷却中，稍后自动恢复"
+        }
+        return nil
+    }
 
     var creditProgress: Double {
         guard let c = credits, let t = creditsTotal, t > 0 else { return 0 }

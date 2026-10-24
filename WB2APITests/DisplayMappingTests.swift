@@ -86,4 +86,30 @@ final class DisplayMappingTests: XCTestCase {
         XCTAssertEqual(result.headline, "共 3 条 · 导入 2 · 跳过 1")
         XCTAssertEqual(result.lines.first, "x 重复")
     }
+
+    func testDisabledAccountNeedsLogin() {
+        let disabled = Account(
+            uid: "u9", nickname: "账号09", credits: 0, creditsTotal: nil, sessionDeadFails: 0,
+            creditsEarliestExpiry: nil, creditsEarliestRemaining: nil, creditsExpiryBuckets: nil,
+            cooling: false, until: nil, rateLimitedModels: nil, modelOff: nil, realm: "cn",
+            disabled: true, disabledReason: "12153 session dead",
+            successCount: 0, lastSuccess: nil, lastErr: nil, checkinDone: nil,
+            tokenUsage: nil, modelCosts: nil
+        )
+        XCTAssertTrue(disabled.needsLogin)
+        XCTAssertEqual(disabled.actionHint, "12153 session dead")
+    }
+
+    func testSessionDeadAccountNeedsLoginEvenIfNotDisabled() {
+        let account = Account(
+            uid: "u10", nickname: "账号10", credits: 10, creditsTotal: 100, sessionDeadFails: 2,
+            creditsEarliestExpiry: nil, creditsEarliestRemaining: nil, creditsExpiryBuckets: nil,
+            cooling: false, until: nil, rateLimitedModels: nil, modelOff: nil, realm: "cn",
+            disabled: false, disabledReason: nil,
+            successCount: 1, lastSuccess: nil, lastErr: nil, checkinDone: nil,
+            tokenUsage: nil, modelCosts: nil
+        )
+        XCTAssertTrue(account.needsLogin)
+        XCTAssertTrue(account.actionHint?.contains("重新登录") == true)
+    }
 }

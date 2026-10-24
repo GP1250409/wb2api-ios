@@ -9,6 +9,7 @@ struct AccountDetailView: View {
 
     @State private var model = AccountDetailModel()
     @State private var isLeaving = false
+    @State private var isShowingRelogin = false
 
     private let account: Account
 
@@ -22,8 +23,13 @@ struct AccountDetailView: View {
 
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Metrics.m) {
+                if current.needsLogin {
+                    actionBanner(current)
+                        .staggeredAppear(index: 0)
+                }
+
                 DetailHeaderCard(account: current)
-                    .staggeredAppear(index: 0)
+                    .staggeredAppear(index: current.needsLogin ? 1 : 0)
 
                 if let message = model.error {
                     ErrorBanner(message: message) {
@@ -111,11 +117,55 @@ struct AccountDetailView: View {
                 .accessibilityLabel("刷新该账号")
             }
         }
+        .sheet(isPresented: $isShowingRelogin) {
+            ReloginView(account: current)
+                .environment(session)
+        }
         .toast($model.toast)
         .task {
             model.remember(account.uid)
             await model.load(using: session.client())
         }
+    }
+
+    /// 登录态失效时给一句人话 + 两个动作（重新登录 / 看日志）。
+    private func actionBanner(_ account: Account) -> some View {
+        VStack(alignment: .leading, spacing: Metrics.s) {
+            HStack(spacing: Metrics.s) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text(account.isDisabled ? "账号已禁用：登录态失效" : "登录态异常")
+                    .font(.callout.bold())
+                Spacer(minLength: 0)
+            }
+
+            Text(account.actionHint ?? "需要重新授权才能恢复调度。")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: Metrics.s) {
+                Button {
+                    isShowingRelogin = true
+                } label: {
+                    Label("重新登录", systemImage: "person.badge.key.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
+                .controlSize(.large)
+
+                NavigationLink {
+                    LogsView(keyword: account.nickname ?? account.uid)
+                } label: {
+                    Label("查看日志", systemImage: "text.alignleft")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glass)
+                .controlSize(.large)
+            }
+        }
+        .padding(Metrics.m)
+        .glassEffect(.regular.tint(.orange.opacity(0.12)), in: .rect(cornerRadius: Metrics.radiusM))
     }
 
     private func reload() {

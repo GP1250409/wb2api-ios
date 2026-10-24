@@ -5,6 +5,7 @@ struct AccountsView: View {
     @Environment(SessionStore.self) private var session
     @State private var model = AccountsModel()
     @State private var path = NavigationPath()
+    @State private var reloginAccount: Account?
     @Namespace private var zoomNamespace
     @Environment(\.scenePhase) private var scenePhase
 
@@ -17,6 +18,7 @@ struct AccountsView: View {
                 zoomNamespace: zoomNamespace,
                 onReload: { reload() },
                 onOpen: { path.append($0) },
+                onRelogin: { reloginAccount = $0 },
                 onCommand: { perform($0, on: $1) },
                 onResetFilter: { model.filter = .all }
             )
@@ -32,6 +34,14 @@ struct AccountsView: View {
                 AccountDetailView(account: account)
             }
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        LogsView()
+                    } label: {
+                        Label("实时日志", systemImage: "text.alignleft")
+                    }
+                    .labelStyle(.iconOnly)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     filterMenu
                 }
@@ -49,6 +59,10 @@ struct AccountsView: View {
                 }
             }
             .animation(Motion.snappy, value: model.filter)
+            .sheet(item: $reloginAccount) { account in
+                ReloginView(account: account)
+                    .environment(session)
+            }
             .toast($model.toast)
             .task { await poll() }
             .onAppear {

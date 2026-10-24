@@ -10,6 +10,7 @@ struct AccountListSection: View {
     let zoomNamespace: Namespace.ID
     var onReload: () -> Void
     var onOpen: (Account) -> Void
+    var onRelogin: (Account) -> Void
     var onCommand: (AccountCommand, Account) -> Void
     var onResetFilter: () -> Void = {}
 
@@ -41,7 +42,8 @@ struct AccountListSection: View {
                             account: account,
                             isBusy: model.busyUIDs.contains(account.uid),
                             namespace: zoomNamespace,
-                            onOpen: { onOpen(account) }
+                            onOpen: { onOpen(account) },
+                            onRelogin: { onRelogin(account) }
                         ) { command in
                             onCommand(command, account)
                         }

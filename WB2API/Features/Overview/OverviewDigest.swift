@@ -63,7 +63,7 @@ struct OverviewDigest: Equatable, Sendable {
     }
 
     var disabledLine: String {
-        disabled > 0 ? "\(disabled) 个账号已禁用" : "没有禁用的账号"
+        disabled > 0 ? "\(disabled) 个账号需重新登录" : "没有需要重新登录的账号"
     }
 
     var checkinLine: String {

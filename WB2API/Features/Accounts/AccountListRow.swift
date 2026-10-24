@@ -8,6 +8,7 @@ struct AccountListRow: View {
     var isBusy: Bool = false
     var namespace: Namespace.ID
     var onOpen: () -> Void
+    var onRelogin: () -> Void = {}
     let onAction: (AccountCommand) -> Void
 
     var body: some View {
@@ -27,6 +28,12 @@ struct AccountListRow: View {
                 onAction(.checkin)
             } label: {
                 Label("签到", systemImage: "checkmark.seal")
+            }
+
+            Button {
+                onRelogin()
+            } label: {
+                Label("重新登录", systemImage: "person.badge.key")
             }
 
             Button {
