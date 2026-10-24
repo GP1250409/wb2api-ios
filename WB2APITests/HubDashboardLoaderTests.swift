@@ -1,6 +1,25 @@
 import XCTest
 @testable import WB2API
 
+private final class DashboardURLProtocol: URLProtocol, @unchecked Sendable {
+    nonisolated(unsafe) static var handler: (@Sendable (URLRequest) throws -> (HTTPURLResponse, Data))?
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() {
+        guard let handler = Self.handler else {
+            client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
+            return
+        }
+        do {
+            let (response, data) = try handler(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch { client?.urlProtocol(self, didFailWithError: error) }
+    }
+    override func stopLoading() {}
+}
+
 private final class DashboardRequestLog: @unchecked Sendable {
     private let lock = NSLock()
     private var records: [(String, String, Bool)] = []
@@ -17,11 +36,10 @@ private final class DashboardRequestLog: @unchecked Sendable {
 final class HubDashboardLoaderTests: XCTestCase {
     @MainActor func testDashboardReadsOnlyActualHubEndpointsAndKeepsWindow() async throws {
         let config = URLSessionConfiguration.ephemeral
-        config.protocolClasses = [StubURLProtocol.self]
+        config.protocolClasses = [DashboardURLProtocol.self]
         let session = URLSession(configuration: config)
         defer {
-            StubURLProtocol.handler = nil
-            StubURLProtocol.lastRequest = nil
+            DashboardURLProtocol.handler = nil
             session.invalidateAndCancel()
         }
         let health = try DashboardFixture.json("health")
@@ -29,7 +47,8 @@ final class HubDashboardLoaderTests: XCTestCase {
         let analytics = try DashboardFixture.json("analytics")
         let series = try DashboardFixture.json("series")
         let log = DashboardRequestLog()
-        StubURLProtocol.handler = { request in
+        // URLProtocol invokes this callback off-main; do not inherit this test's MainActor.
+        DashboardURLProtocol.handler = { @Sendable request in
             log.append(request)
             var response: JSONValue
             let path = request.url!.path

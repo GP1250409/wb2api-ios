@@ -15,6 +15,7 @@ struct HubDashboardSurface<Content: View>: View {
                 .ignoresSafeArea()
         }
         .background(.background)
+        .tint(Accent.primary)
     }
 }
 

@@ -37,11 +37,14 @@ jobs:
         run: |
           set -o pipefail
           DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import sys,json; d=json.load(sys.stdin); print(next(x["udid"] for ds in d["devices"].values() for x in ds if "iPhone" in x["name"]))')
-          xcodebuild test -project WB2API.xcodeproj -scheme WB2API -destination "platform=iOS Simulator,id=$DEVICE" -derivedDataPath .build-test -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO | tee tests.log | tail -60
+          xcodebuild test -project WB2API.xcodeproj -scheme WB2API -destination "platform=iOS Simulator,id=$DEVICE" -derivedDataPath .build-test -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO 2>&1 | tee tests.log | tail -60
       - name: Export fixture UI snapshots
         if: always()
         continue-on-error: true
-        run: xcrun xcresulttool export attachments --path TestResults.xcresult --output-path ui-snapshots
+        run: |
+          xcrun xcresulttool get test-results summary --path TestResults.xcresult > test-summary.json
+          xcrun xcresulttool get test-results tests --path TestResults.xcresult > test-results.json
+          xcrun xcresulttool export attachments --path TestResults.xcresult --output-path ui-snapshots
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -55,4 +58,6 @@ jobs:
           path: |
             build.log
             tests.log
+            test-summary.json
+            test-results.json
           if-no-files-found: ignore
