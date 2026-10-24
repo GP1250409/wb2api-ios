@@ -6,7 +6,8 @@ import Observation
 @MainActor
 @Observable
 final class SessionStore {
-    static let defaultBaseURL = "https://panel.example.com"
+    /// 不预置任何服务地址：由使用者填入自己部署的面板。
+    static let defaultBaseURL = ""
 
     private static let baseURLKey = "wb2api.baseURL"
 
@@ -15,7 +16,9 @@ final class SessionStore {
     }
 
     private(set) var apiKey: String
-    var isConfigured: Bool { !apiKey.isEmpty && URL(string: baseURLString) != nil }
+    var isConfigured: Bool {
+        !apiKey.isEmpty && !baseURLString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
 
     init() {
         baseURLString = UserDefaults.standard.string(forKey: Self.baseURLKey) ?? Self.defaultBaseURL

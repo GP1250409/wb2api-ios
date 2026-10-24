@@ -52,7 +52,7 @@
  ],
  "by_account": [
   {
-   "key": "d36f1232-616b-4118-a8ec-9d0a40bf459b",
+   "key": "b1184f4c-d011-4a32-a9ec-7c79b8103393",
    "realm": "cn",
    "extra": "账号03",
    "requests": 2488,
@@ -71,9 +71,9 @@
    "cache_hit_rate": 97.82338952457945
   },
   {
-   "key": "540eb5b0-5f1c-4c5b-a44f-f18d296988dc",
+   "key": "d20b5528-3df5-4200-a4fa-1bd25b07319d",
    "realm": "cn",
-   "extra": "账号02",
+   "extra": "账号01",
    "requests": 2552,
    "errors": 77,
    "prompt_tokens": 639365354,
@@ -90,9 +90,9 @@
    "cache_hit_rate": 97.76576431291701
   },
   {
-   "key": "19c294b4-316d-44e8-a33b-71afde6d6d61",
+   "key": "956bb305-3d4e-47d2-a30f-d797e249111d",
    "realm": "cn",
-   "extra": "账号04",
+   "extra": "账号02",
    "requests": 2429,
    "errors": 16,
    "prompt_tokens": 617560614,
@@ -109,7 +109,7 @@
    "cache_hit_rate": 98.10936551491997
   },
   {
-   "key": "367d102c-9d6e-466a-ad1e-d13d6137641d",
+   "key": "0ba5fde2-1bf1-4aed-a1cb-83af6f84ef9b",
    "realm": "cn",
    "extra": "chenyyn",
    "requests": 2319,
@@ -128,7 +128,7 @@
    "cache_hit_rate": 98.28025543635435
   },
   {
-   "key": "951d10bb-2391-4fa5-a650-e1a6601640cd",
+   "key": "f80f7219-2d2f-4c71-add1-f93e82757e5e",
    "realm": "cn",
    "extra": "账号J",
    "requests": 2017,
@@ -147,7 +147,7 @@
    "cache_hit_rate": 97.47823193534741
   },
   {
-   "key": "82a30329-5b76-4203-a894-02dc6f46f93a",
+   "key": "6acaa8ca-3f55-42b0-a3c4-1df0c39fae98",
    "realm": "cn",
    "extra": "账号05",
    "requests": 1411,
@@ -166,9 +166,9 @@
    "cache_hit_rate": 97.32062931484153
   },
   {
-   "key": "240e2add-ec3b-4713-aa7e-2a04b79615f8",
+   "key": "a3b58149-e805-4dde-a51c-fedc72e0c217",
    "realm": "cn",
-   "extra": "账号06",
+   "extra": "账号04",
    "requests": 1884,
    "errors": 10,
    "prompt_tokens": 400630411,
@@ -185,9 +185,9 @@
    "cache_hit_rate": 97.56401009603978
   },
   {
-   "key": "c2b3cac2-5a7c-4893-a5d0-ffc281cec865",
+   "key": "0c4f33d9-c569-4930-a7bf-6d960fcb735f",
    "realm": "cn",
-   "extra": "账号07",
+   "extra": "账号06",
    "requests": 1642,
    "errors": 15,
    "prompt_tokens": 400230521,
@@ -204,9 +204,9 @@
    "cache_hit_rate": 97.98829728164057
   },
   {
-   "key": "9f0ed858-4267-4d84-a07d-27c2040ce1ba",
+   "key": "d1c1ce5c-39fd-485f-a617-d73e69d8b52b",
    "realm": "cn",
-   "extra": "账号08",
+   "extra": "账号07",
    "requests": 1626,
    "errors": 7,
    "prompt_tokens": 399379101,
@@ -223,7 +223,7 @@
    "cache_hit_rate": 97.06531596172425
   },
   {
-   "key": "500190be-7670-4101-ac6f-3d76745a111a",
+   "key": "24a594c0-00b5-4335-aec0-0dd570debcbe",
    "realm": "global",
    "extra": "user@example.com",
    "requests": 3,
@@ -241,7 +241,7 @@
    "credits_per_1m_tokens": 0
   },
   {
-   "key": "e2938cdc-318e-4dce-a811-4ff9f13abbd8",
+   "key": "932367a4-554f-4407-aefd-138fe6bb9246",
    "realm": "global",
    "extra": "user@example.com",
    "requests": 2,
@@ -1641,7 +1641,7 @@
  ],
  "credit_by_account": [
   {
-   "key": "540eb5b0-5f1c-4c5b-a44f-f18d296988dc",
+   "key": "d20b5528-3df5-4200-a4fa-1bd25b07319d",
    "realm": "cn",
    "nickname": "账号1",
    "requests": 2541,
@@ -1654,7 +1654,7 @@
    "cache_hit_rate": 97.76576431291701
   },
   {
-   "key": "951d10bb-2391-4fa5-a650-e1a6601640cd",
+   "key": "f80f7219-2d2f-4c71-add1-f93e82757e5e",
    "realm": "cn",
    "nickname": "账号1",
    "requests": 1940,
@@ -1667,7 +1667,7 @@
    "cache_hit_rate": 97.47823193534741
   },
   {
-   "key": "d36f1232-616b-4118-a8ec-9d0a40bf459b",
+   "key": "b1184f4c-d011-4a32-a9ec-7c79b8103393",
    "realm": "cn",
    "nickname": "账号1",
    "requests": 2475,
@@ -1680,7 +1680,7 @@
    "cache_hit_rate": 97.82338952457945
   },
   {
-   "key": "19c294b4-316d-44e8-a33b-71afde6d6d61",
+   "key": "956bb305-3d4e-47d2-a30f-d797e249111d",
    "realm": "cn",
    "nickname": "账号1",
    "requests": 2416,
@@ -1693,7 +1693,7 @@
    "cache_hit_rate": 98.10936551491997
   },
   {
-   "key": "367d102c-9d6e-466a-ad1e-d13d6137641d",
+   "key": "0ba5fde2-1bf1-4aed-a1cb-83af6f84ef9b",
    "realm": "cn",
    "nickname": "账号1",
    "requests": 2310,
@@ -1706,7 +1706,7 @@
    "cache_hit_rate": 98.28025543635435
   },
   {
-   "key": "9f0ed858-4267-4d84-a07d-27c2040ce1ba",
+   "key": "d1c1ce5c-39fd-485f-a617-d73e69d8b52b",
    "realm": "cn",
    "nickname": "账号1",
    "requests": 1625,
@@ -1719,7 +1719,7 @@
    "cache_hit_rate": 97.06531596172425
   },
   {
-   "key": "240e2add-ec3b-4713-aa7e-2a04b79615f8",
+   "key": "a3b58149-e805-4dde-a51c-fedc72e0c217",
    "realm": "cn",
    "nickname": "账号1",
    "requests": 1879,
@@ -1732,7 +1732,7 @@
    "cache_hit_rate": 97.56401009603978
   },
   {
-   "key": "82a30329-5b76-4203-a894-02dc6f46f93a",
+   "key": "6acaa8ca-3f55-42b0-a3c4-1df0c39fae98",
    "realm": "cn",
    "nickname": "账号1",
    "requests": 1407,
@@ -1745,7 +1745,7 @@
    "cache_hit_rate": 97.32062931484153
   },
   {
-   "key": "c2b3cac2-5a7c-4893-a5d0-ffc281cec865",
+   "key": "0c4f33d9-c569-4930-a7bf-6d960fcb735f",
    "realm": "cn",
    "nickname": "账号1",
    "requests": 1632,

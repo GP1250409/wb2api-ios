@@ -184,12 +184,12 @@
   {
    "ts": "2026-10-23T19:32:27.378905579+08:00",
    "ch": "sys",
-   "text": "panel: revive uid=951d10bb-2391-4fa5-a650-e1a6601640cd（人工清除禁用/冷却/熔断）"
+   "text": "panel: revive uid=f80f7219-2d2f-4c71-add1-f93e82757e5e（人工清除禁用/冷却/熔断）"
   },
   {
    "ts": "2026-10-23T19:32:36.030538295+08:00",
    "ch": "chat",
-   "text": "| #012 | 19:32:36 | cn:glm-5.3-flash           | stream | 200 | 账号06(390440f9)     | TTFB=7252ms   | tok=974 think=0 | 44.0tok/s   | cache=0%     | total=29.4s | prep=35ms do=7185ms"
+   "text": "| #012 | 19:32:36 | cn:glm-5.3-flash           | stream | 200 | 账号04(390440f9)     | TTFB=7252ms   | tok=974 think=0 | 44.0tok/s   | cache=0%     | total=29.4s | prep=35ms do=7185ms"
   },
   {
    "ts": "2026-10-23T19:32:38.291790683+08:00",
@@ -224,27 +224,27 @@
   {
    "ts": "2026-10-23T19:32:49.031271034+08:00",
    "ch": "sys",
-   "text": "WARN: [server] stream acct=账号04(f6cee0dd) model=glm-5.3-flash: finish_reason=stop with zero tool_calls despite 10 declared tool(s) (silent stop; client may treat the turn as complete)"
+   "text": "WARN: [server] stream acct=账号02(f6cee0dd) model=glm-5.3-flash: finish_reason=stop with zero tool_calls despite 10 declared tool(s) (silent stop; client may treat the turn as complete)"
   },
   {
    "ts": "2026-10-23T19:32:49.031347134+08:00",
    "ch": "chat",
-   "text": "| #013 | 19:32:49 | cn:glm-5.3-flash           | stream | 200 | 账号04(f6cee0dd)     | TTFB=7750ms   | tok=104 think=0 | 30.1tok/s   | cache=0%     | total=11.2s | prep=39ms do=6610ms"
+   "text": "| #013 | 19:32:49 | cn:glm-5.3-flash           | stream | 200 | 账号02(f6cee0dd)     | TTFB=7750ms   | tok=104 think=0 | 30.1tok/s   | cache=0%     | total=11.2s | prep=39ms do=6610ms"
   },
   {
    "ts": "2026-10-23T19:33:28.372819957+08:00",
    "ch": "sys",
-   "text": "ERR: [upstream] chat_stream acct=账号02(9d9b656c): transport error: Post \"https://copilot.tencent.com/v2/chat/completions\": context canceled"
+   "text": "ERR: [upstream] chat_stream acct=账号01(9d9b656c): transport error: Post \"https://copilot.tencent.com/v2/chat/completions\": context canceled"
   },
   {
    "ts": "2026-10-23T19:33:28.373001451+08:00",
    "ch": "chat",
-   "text": "| #014 | 19:33:28 | cn:glm-5.3-flash           | stream | 503 | 账号02(9d9b656c)     | TTFB=-        | tok=-      | -           | cache=-      | total=19.6s | prep=36ms do=19580ms"
+   "text": "| #014 | 19:33:28 | cn:glm-5.3-flash           | stream | 503 | 账号01(9d9b656c)     | TTFB=-        | tok=-      | -           | cache=-      | total=19.6s | prep=36ms do=19580ms"
   },
   {
    "ts": "2026-10-23T19:33:50.682827676+08:00",
    "ch": "chat",
-   "text": "| #015 | 19:33:50 | cn:glm-5.3-flash           | stream | 200 | 账号02(9d9b656c)     | TTFB=3406ms   | tok=212 think=86 | 77.6tok/s   | cache=99%    | total=6.1s | prep=37ms do=3328ms"
+   "text": "| #015 | 19:33:50 | cn:glm-5.3-flash           | stream | 200 | 账号01(9d9b656c)     | TTFB=3406ms   | tok=212 think=86 | 77.6tok/s   | cache=99%    | total=6.1s | prep=37ms do=3328ms"
   },
   {
    "ts": "2026-10-23T19:33:53.423926553+08:00",
@@ -254,22 +254,22 @@
   {
    "ts": "2026-10-23T19:34:00.73167697+08:00",
    "ch": "sys",
-   "text": "WARN: [continue] acct=账号02(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
+   "text": "WARN: [continue] acct=账号01(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
   },
   {
    "ts": "2026-10-23T19:34:00.736803554+08:00",
    "ch": "chat",
-   "text": "| #016 | 19:34:00 | cn:glm-5.3-flash           | stream | 200 | 账号02(9d9b656c)     | TTFB=4827ms   | tok=-      | -           | cache=-      | total=4.8s | prep=34ms do=4759ms"
+   "text": "| #016 | 19:34:00 | cn:glm-5.3-flash           | stream | 200 | 账号01(9d9b656c)     | TTFB=4827ms   | tok=-      | -           | cache=-      | total=4.8s | prep=34ms do=4759ms"
   },
   {
    "ts": "2026-10-23T19:34:04.370401101+08:00",
    "ch": "sys",
-   "text": "WARN: [continue] acct=账号02(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
+   "text": "WARN: [continue] acct=账号01(9d9b656c) 段无 finish 结束（疑似上游断流，按截断终态降级）"
   },
   {
    "ts": "2026-10-23T19:34:04.375313195+08:00",
    "ch": "chat",
-   "text": "| #017 | 19:34:04 | cn:glm-5.3-flash           | stream | 200 | 账号02(9d9b656c)     | TTFB=3875ms   | tok=-      | -           | cache=-      | total=3.9s | prep=34ms do=3806ms"
+   "text": "| #017 | 19:34:04 | cn:glm-5.3-flash           | stream | 200 | 账号01(9d9b656c)     | TTFB=3875ms   | tok=-      | -           | cache=-      | total=3.9s | prep=34ms do=3806ms"
   },
   {
    "ts": "2026-10-23T19:45:09.661264004+08:00",
@@ -339,12 +339,12 @@
   {
    "ts": "2026-10-23T19:46:35.523234392+08:00",
    "ch": "sys",
-   "text": "balance-sample 9f0ed858-4267-4d84-a07d-27c2040ce1ba: credits=2548"
+   "text": "balance-sample d1c1ce5c-39fd-485f-a617-d73e69d8b52b: credits=2548"
   },
   {
    "ts": "2026-10-23T19:46:35.531514181+08:00",
    "ch": "sys",
-   "text": "balance-sample 240e2add-ec3b-4713-aa7e-2a04b79615f8: credits=2677"
+   "text": "balance-sample a3b58149-e805-4dde-a51c-fedc72e0c217: credits=2677"
   },
   {
    "ts": "2026-10-23T19:46:35.539261498+08:00",
@@ -354,32 +354,32 @@
   {
    "ts": "2026-10-23T19:46:35.546049835+08:00",
    "ch": "sys",
-   "text": "balance-sample 19c294b4-316d-44e8-a33b-71afde6d6d61: credits=2721"
+   "text": "balance-sample 956bb305-3d4e-47d2-a30f-d797e249111d: credits=2721"
   },
   {
    "ts": "2026-10-23T19:46:35.550188418+08:00",
    "ch": "sys",
-   "text": "balance-sample c2b3cac2-5a7c-4893-a5d0-ffc281cec865: credits=2781"
+   "text": "balance-sample 0c4f33d9-c569-4930-a7bf-6d960fcb735f: credits=2781"
   },
   {
    "ts": "2026-10-23T19:46:35.567541775+08:00",
    "ch": "sys",
-   "text": "balance-sample 540eb5b0-5f1c-4c5b-a44f-f18d296988dc: credits=2298"
+   "text": "balance-sample d20b5528-3df5-4200-a4fa-1bd25b07319d: credits=2298"
   },
   {
    "ts": "2026-10-23T19:46:35.570769551+08:00",
    "ch": "sys",
-   "text": "balance-sample 82a30329-5b76-4203-a894-02dc6f46f93a: credits=2735"
+   "text": "balance-sample 6acaa8ca-3f55-42b0-a3c4-1df0c39fae98: credits=2735"
   },
   {
    "ts": "2026-10-23T19:46:35.640999221+08:00",
    "ch": "sys",
-   "text": "balance-sample d36f1232-616b-4118-a8ec-9d0a40bf459b: credits=1472"
+   "text": "balance-sample b1184f4c-d011-4a32-a9ec-7c79b8103393: credits=1472"
   },
   {
    "ts": "2026-10-23T19:46:35.669321432+08:00",
    "ch": "sys",
-   "text": "balance-sample 367d102c-9d6e-466a-ad1e-d13d6137641d: credits=1969"
+   "text": "balance-sample 0ba5fde2-1bf1-4aed-a1cb-83af6f84ef9b: credits=1969"
   },
   {
    "ts": "2026-10-23T19:46:36.749951192+08:00",
@@ -394,17 +394,17 @@
   {
    "ts": "2026-10-23T19:46:42.140784342+08:00",
    "ch": "sys",
-   "text": "panel: revive uid=500190be-7670-4101-ac6f-3d76745a111a（人工清除禁用/冷却/熔断）"
+   "text": "panel: revive uid=24a594c0-00b5-4335-aec0-0dd570debcbe（人工清除禁用/冷却/熔断）"
   },
   {
    "ts": "2026-10-23T19:46:46.495474251+08:00",
    "ch": "sys",
-   "text": "panel: revive uid=e2938cdc-318e-4dce-a811-4ff9f13abbd8（人工清除禁用/冷却/熔断）"
+   "text": "panel: revive uid=932367a4-554f-4407-aefd-138fe6bb9246（人工清除禁用/冷却/熔断）"
   },
   {
    "ts": "2026-10-23T19:47:02.814940764+08:00",
    "ch": "sys",
-   "text": "panel: 新账号已热加载 uid=951d10bb-2391-4fa5-a650-e1a6601640cd nickname=\"账号J\" realm=cn（免重启生效）"
+   "text": "panel: 新账号已热加载 uid=f80f7219-2d2f-4c71-add1-f93e82757e5e nickname=\"账号J\" realm=cn（免重启生效）"
   }
  ]
 }

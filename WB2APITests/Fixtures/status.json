@@ -1,7 +1,7 @@
 {
  "accounts": [
   {
-   "uid": "66d85732-0c55-42ea-aa3e-8b2757bc559e",
+   "uid": "8b7d5f58-48ce-4779-a9a2-516d25bce29d",
    "nickname": "账号1",
    "credits": 2548,
    "credits_total": 3100,
@@ -74,7 +74,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "c8d287da-fb13-45fb-a80b-587ab813fce0",
+   "uid": "fb9daa68-30da-449e-a192-cc7dfe4b3936",
    "nickname": "账号1",
    "credits": 2781,
    "credits_total": 3100,
@@ -146,7 +146,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "74dc371f-2f91-4537-afc4-e6ce0100bafe",
+   "uid": "a89f306b-fa37-4691-a4a8-785bad14cf96",
    "nickname": "账号1",
    "credits": 2735,
    "credits_total": 3100,
@@ -209,7 +209,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "3a53bd95-0f5d-4ce3-a61f-2fb2822818a8",
+   "uid": "28fd9411-297e-402f-a163-febd0ba72d8c",
    "nickname": "账号1",
    "credits": 2677,
    "credits_total": 3100,
@@ -287,7 +287,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "d720a3fb-cf8a-44bc-a788-d7708b1e978c",
+   "uid": "4a9b6a20-d1f8-4f40-a969-a15a48c55870",
    "nickname": "账号1",
    "credits": 1926,
    "credits_total": 6523,
@@ -382,7 +382,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "45d163b8-97b0-40ee-a85d-ae84e65553f3",
+   "uid": "69c305c0-9d12-465d-a8bd-1394e82b7558",
    "nickname": "账号1",
    "credits": 2298,
    "credits_total": 3200,
@@ -465,7 +465,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "3603f842-989b-44d2-aef2-7b5b8a2dfa36",
+   "uid": "e974ff31-60bf-49dd-acf2-91680ceb59b4",
    "nickname": "账号1",
    "credits": 90,
    "credits_total": 470,
@@ -503,7 +503,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "4fdaad99-a60d-4ef7-afcd-7c6250605cf8",
+   "uid": "c15c16be-9071-49da-ad54-f8f5819de77c",
    "nickname": "账号1",
    "credits": 1472,
    "credits_total": 6018,
@@ -601,7 +601,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "8c68f5e7-174d-4446-ae16-965d92b1e20d",
+   "uid": "48ad4fa2-2aef-4c5c-a7aa-4c34dc4f2162",
    "nickname": "账号1",
    "credits": 90,
    "credits_total": 470,
@@ -639,7 +639,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "1219b6d4-e641-4f87-a55f-20bc75144896",
+   "uid": "a15f13f5-4b54-4f69-add2-d941b9744b0d",
    "nickname": "账号1",
    "credits": 1969,
    "credits_total": 6214,
@@ -751,7 +751,7 @@
    "breaker_until": "0001-01-01T00:00:00Z"
   },
   {
-   "uid": "01f75eb4-3314-4a97-a490-728017724b91",
+   "uid": "5eb94615-7ce7-48cf-a3d1-d7d955579c91",
    "nickname": "账号1",
    "credits": 2721,
    "credits_total": 3300,

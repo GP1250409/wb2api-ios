@@ -16,9 +16,9 @@ final class DisplayMappingTests: XCTestCase {
 
         let extra = try JSONDecoder().decode(
             UsageGroup.self,
-            from: Data(#"{"key":"uid-1","extra":"账号02","realm":"cn"}"#.utf8)
+            from: Data(#"{"key":"uid-1","extra":"账号07","realm":"cn"}"#.utf8)
         )
-        XCTAssertEqual(extra.displayName, "账号02")
+        XCTAssertEqual(extra.displayName, "账号07")
 
         let realm = try JSONDecoder().decode(
             UsageGroup.self,
