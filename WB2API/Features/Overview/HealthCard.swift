@@ -27,11 +27,11 @@ struct HealthCard: View {
         }
         if items.isEmpty {
             // 没有异常时不留空：换成当天用量与积分到期这类有信息量的摘要。
-            if digest.todayTokens != nil {
+            if digest.avgLatencyMs != nil {
                 items.append(StatusLine(
                     id: 10,
-                    icon: "bolt.horizontal.fill",
-                    text: "今日 \(digest.todayTokensText) tokens · 平均 \(Fmt.latency(digest.avgLatencyMs))",
+                    icon: "speedometer",
+                    text: "平均延迟 \(Fmt.latency(digest.avgLatencyMs))",
                     tint: .secondary
                 ))
             }

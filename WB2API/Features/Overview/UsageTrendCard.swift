@@ -69,9 +69,7 @@ struct UsageTrendCard: View {
         if let activeIndex {
             return headline(for: activeIndex)
         }
-        return buckets.isEmpty
-            ? "最近 24 小时"
-            : "最近 \(buckets.count) 小时 · 峰值 \(Fmt.compact(peak))"
+        return buckets.isEmpty ? "最近 24 小时" : "最近 \(buckets.count) 小时"
     }
 
     private func headline(for index: Int) -> String {

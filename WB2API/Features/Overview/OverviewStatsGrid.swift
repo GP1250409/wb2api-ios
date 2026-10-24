@@ -29,7 +29,7 @@ struct OverviewStatsGrid: View {
             )
             StatTile(
                 title: "缓存命中",
-                value: Fmt.percent(digest.cacheHitRate),
+                value: Fmt.rate(digest.cacheHitRate),
                 caption: "命中 / 输入 token"
             )
         }

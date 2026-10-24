@@ -20,7 +20,7 @@ struct UsageTotalsGrid: View {
             )
             StatTile(title: "错误数", value: Fmt.compact(totals?.errors))
             StatTile(title: "平均延迟", value: Fmt.latency(totals?.avgLatencyMs))
-            StatTile(title: "缓存命中", value: Fmt.percent(totals?.cacheHitRate))
+            StatTile(title: "缓存命中", value: Fmt.rate(totals?.cacheHitRate))
         }
     }
 }

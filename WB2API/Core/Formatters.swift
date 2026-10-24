@@ -24,6 +24,12 @@ enum Fmt {
         }
     }
 
+    /// 后端已经是 0–100 的百分数（如 cache_hit_rate = 97.5）。
+    static func rate(_ value: Double?, digits: Int = 1) -> String {
+        guard let value else { return "—" }
+        return String(format: "%.\(digits)f%%", value)
+    }
+
     static func percent(_ value: Double?, digits: Int = 1) -> String {
         guard let value else { return "—" }
         return String(format: "%.\(digits)f%%", value * 100)
