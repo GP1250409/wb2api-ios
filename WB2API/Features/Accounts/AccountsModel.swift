@@ -11,6 +11,8 @@ final class AccountsModel {
     var filter: AccountFilter = .all
     var toast: Toast?
     private(set) var busyUIDs: Set<String> = []
+    /// 覆盖「同步上游余额 + 重拉 overview」整段；按钮转圈用它，别只看 loader.isLoading
+    private(set) var isReloading = false
 
     var accounts: [Account] { loader.value?.accounts ?? [] }
     var isLoading: Bool { loader.isLoading }
@@ -57,17 +59,25 @@ final class AccountsModel {
     }
 
     /// - Parameter syncBalance: 用户主动刷新时为 true——先让后端查一轮上游余额，
-    ///   否则面板缓存的积分不会变（后台余额刷新默认关闭）。
+    ///   否则面板缓存的积分不会变。节流期内跳过上游同步但仍然重拉 overview。
     func load(using client: APIClient?, syncBalance: Bool = false) async {
         guard let client else {
             toast = Toast(kind: .failure, text: "尚未配置服务器地址")
             return
         }
         if syncBalance {
+            isReloading = true
             await BalanceSync.refreshAll(client: client)
         }
+        defer { if syncBalance { isReloading = false } }
         // 主动刷新强制重发，不被进行中的轮询挡掉
         await loader.load(force: syncBalance) { try await client.overview() }
+        guard syncBalance else { return }
+        if let error = loader.error {
+            toast = Toast(kind: .failure, text: error)
+        } else {
+            toast = Toast(kind: .info, text: "已刷新账号状态")
+        }
     }
 
     // MARK: 单号操作

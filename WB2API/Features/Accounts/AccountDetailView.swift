@@ -100,8 +100,15 @@ struct AccountDetailView: View {
         .toolbar(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("刷新", systemImage: "arrow.clockwise", action: reload)
-                    .disabled(model.isLoading || model.busy != nil)
+                Button(action: reload) {
+                    if model.isLoading || model.isReloading {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Label("刷新", systemImage: "arrow.clockwise")
+                    }
+                }
+                .labelStyle(.iconOnly)
+                .accessibilityLabel("刷新该账号")
             }
         }
         .toast($model.toast)

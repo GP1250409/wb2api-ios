@@ -72,7 +72,7 @@ struct AboutView: View {
             } header: {
                 Text("构建")
             } footer: {
-                Text("api_key 只存本机 Keychain；App 不做任何统计或上报。")
+                Text("图标：Phosphor Icons（MIT）。api_key 只存本机 Keychain；App 不做任何统计或上报。")
             }
         }
         .navigationTitle("开源")

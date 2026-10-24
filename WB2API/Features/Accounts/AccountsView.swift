@@ -36,8 +36,16 @@ struct AccountsView: View {
                     filterMenu
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("刷新", systemImage: "arrow.clockwise", action: reload)
-                        .disabled(model.isLoading)
+                    // 不 disable：轮询期间点击也要能强制重发，转圈只是反馈
+                    Button(action: reload) {
+                        if model.isLoading || model.isReloading {
+                            ProgressView().controlSize(.small)
+                        } else {
+                            Label("刷新", systemImage: "arrow.clockwise")
+                        }
+                    }
+                    .labelStyle(.iconOnly)
+                    .accessibilityLabel("刷新账号状态")
                 }
             }
             .animation(Motion.snappy, value: model.filter)

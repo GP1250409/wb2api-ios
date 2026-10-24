@@ -81,6 +81,10 @@ CI 每次 push 自动跑双 job：**模拟器单测** + **无签名 IPA**。到 
 - 动效 token：[`WB2API/Design/Motion.swift`](WB2API/Design/Motion.swift)（全部带 `value:`，尊重「减弱动态效果」）
 - 结构：`Core`（网络/模型/会话）· `Design` · `Components` · `Features/*`（概览/账号/任务/数据/模型/日志/资源/配置/登录/设置），一类型一文件
 
+## 素材
+
+App 图标使用 [Phosphor Icons](https://github.com/phosphor-icons/core) 的 `dog-fill`（MIT License），按品牌紫 `#7C5CFF` 重上色，生成脚本见 [`tools/make_icon_dog.py`](tools/make_icon_dog.py)。
+
 ## 隐私
 
 - `api_key` 只存本机 **Keychain**，地址存 UserDefaults；

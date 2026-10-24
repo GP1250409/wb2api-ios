@@ -11,6 +11,7 @@ final class AccountDetailModel {
 
     var toast: Toast?
     private(set) var busy: AccountCommand?
+    private(set) var isReloading = false
 
     var isLoading: Bool { loader.isLoading }
     var error: String? { loader.error }
@@ -28,9 +29,17 @@ final class AccountDetailModel {
             return
         }
         if syncBalance, let uid = lastUID {
+            isReloading = true
             await BalanceSync.refreshAccount(uid, client: client)
         }
+        defer { if syncBalance { isReloading = false } }
         await loader.load(force: syncBalance) { try await client.overview() }
+        guard syncBalance else { return }
+        if let error = loader.error {
+            toast = Toast(kind: .failure, text: error)
+        } else {
+            toast = Toast(kind: .info, text: "已刷新")
+        }
     }
 
     /// 记住当前查看的账号，供余额同步用。
