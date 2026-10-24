@@ -162,7 +162,7 @@ struct Account: Codable, Identifiable, Sendable {
     /// 给用户看的一句话：现在是什么状态、该做什么。
     var actionHint: String? {
         if isDisabled {
-            return disabledReason.isEmpty ? "账号已禁用，通常是登录态失效，需要重新登录授权" : disabledReason
+            return (disabledReason ?? "").isEmpty ? "账号已禁用，通常是登录态失效，需要重新登录授权" : (disabledReason ?? "")
         }
         if let fails = sessionDeadFails, fails > 0 {
             return "登录态已失效（连续 \(fails) 次会话失效），请重新登录"
