@@ -3,6 +3,7 @@ import SwiftUI
 /// 错误汇总：扫描概览 + 按分组聚合的错误卡。
 struct ErrorSummaryView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
 
     @StateObject private var summary = Loader<ErrorSummary>()
 
@@ -69,7 +70,7 @@ struct ErrorSummaryView: View {
     }
 
     private func refresh() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await summary.load { try await client.errorSummary() }
     }
 }

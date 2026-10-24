@@ -3,6 +3,7 @@ import SwiftUI
 /// 余额趋势：7 / 14 / 30 天折线，附各账号汇总与每日变化。
 struct BalanceHistoryView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @StateObject private var loader = Loader<BalanceHistory>()
     @State private var days = 7
 
@@ -130,7 +131,7 @@ struct BalanceHistoryView: View {
     // MARK: - 动作
 
     private func load() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await loader.load { try await client.balanceHistory(days: days) }
     }
 

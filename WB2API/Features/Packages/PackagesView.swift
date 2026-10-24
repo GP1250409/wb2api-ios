@@ -3,6 +3,7 @@ import SwiftUI
 /// 礼包：按账号分组展示剩余 / 已用 / 总量。
 struct PackagesView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @StateObject private var loader = Loader<PackagesResponse>()
 
     private var accounts: [PackageAccount] {
@@ -71,7 +72,7 @@ struct PackagesView: View {
     // MARK: - 动作
 
     private func load() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await loader.load { try await client.packages() }
     }
 

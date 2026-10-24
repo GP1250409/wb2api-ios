@@ -2,6 +2,7 @@ import SwiftUI
 import WebKit
 
 struct HubSettingsView: View {
+    let client: HubClient
     @EnvironmentObject private var session: SessionStore
     @State private var showingWeb = false
     @State private var confirmingSignOut = false
@@ -27,7 +28,7 @@ struct HubSettingsView: View {
                     if let message { Text(message).font(.footnote).textSelection(.enabled) }
                 }
                 Section("其他功能") {
-                    NavigationLink("模型列表") { HubResourceView(kind: .models) }
+                    NavigationLink("模型列表") { HubResourceView(client: client, kind: .models) }
                     Button("完整网页面板") { showingWeb = true }
                     Text("账号导入、代理、定时策略等高级设置仍使用完整网页面板。网页有独立面板登录，必要时再次输入面板密码；不会把原生会话或密码注入网页。")
                         .font(.footnote).foregroundStyle(.secondary)
@@ -35,7 +36,7 @@ struct HubSettingsView: View {
                 Section {
                     Button("重新登录当前 Hub", role: .destructive) { confirmingSignOut = true }
                 } footer: {
-                    Text("只清除当前服务器的本机面板会话。RN 和其他服务器的保存凭据不受影响。")
+                    Text("仅清除此配置的原生会话；不清除其网页面板或 CF 登录，其他服务器不受影响。")
                 }
             }
             .navigationTitle("Hub 设置")
@@ -50,7 +51,6 @@ struct HubSettingsView: View {
     }
 
     private func checkLogin() async {
-        guard let client = session.hubClient() else { return }
         checking = true
         defer { checking = false }
         do {

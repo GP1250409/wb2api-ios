@@ -3,6 +3,7 @@ import SwiftUI
 /// 设置：服务器地址、访问密钥、连接测试、关于与退出登录。
 struct SettingsView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
 
     @State private var keyDraft = ""
     @State private var isTesting = false
@@ -141,7 +142,7 @@ struct SettingsView: View {
     }
 
     private func performTest() async {
-        guard let client = session.client() else {
+        guard let client = session.client(for: serverScope) else {
             testPassed = false
             testMessage = "请先填写服务器地址"
             return

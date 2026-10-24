@@ -5,6 +5,7 @@ import SwiftUI
 /// 刷新时重新调 `client.overview()`，按 uid 找回同一个账号。
 struct AccountDetailView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var model = AccountDetailModel()
@@ -98,7 +99,7 @@ struct AccountDetailView: View {
         .scaleEffect(isLeaving ? 0.96 : 1)
         .allowsHitTesting(!isLeaving)
         .refreshable {
-            await model.load(using: session.client(), syncBalance: true)
+            await model.load(using: session.client(for: serverScope), syncBalance: true)
         }
         .navigationTitle(current.displayName)
         .navigationBarTitleDisplayMode(.inline)
@@ -123,7 +124,7 @@ struct AccountDetailView: View {
         .toast($model.toast)
         .task {
             model.remember(account.uid)
-            await model.load(using: session.client())
+            await model.load(using: session.client(for: serverScope))
         }
     }
 
@@ -168,18 +169,18 @@ struct AccountDetailView: View {
     }
 
     private func reload() {
-        Task { await model.load(using: session.client(), syncBalance: true) }
+        Task { await model.load(using: session.client(for: serverScope), syncBalance: true) }
     }
 
     private func perform(_ command: AccountCommand) {
         Task {
-            await model.perform(command, on: model.current(account), using: session.client())
+            await model.perform(command, on: model.current(account), using: session.client(for: serverScope))
         }
     }
 
     private func requestRemove() {
         Task {
-            let removed = await model.remove(account, using: session.client())
+            let removed = await model.remove(account, using: session.client(for: serverScope))
             guard removed else { return }
             // iOS 16 has no SwiftUI animation-completion overload.
             // The server has confirmed removal; let NavigationStack animate dismissal.

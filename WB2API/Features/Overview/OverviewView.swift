@@ -5,6 +5,7 @@ import SwiftUI
 /// 数据统一走 `client.overview()`（公网没有 `/status`）。
 struct OverviewView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = OverviewModel()
 
@@ -68,7 +69,7 @@ struct OverviewView: View {
             }
             .background(.background)
             .refreshable {
-                await model.load(using: session.client(), syncBalance: true)
+                await model.load(using: session.client(for: serverScope), syncBalance: true)
             }
             .navigationDestination(for: Account.self) { account in
                 AccountDetailView(account: account)
@@ -76,20 +77,20 @@ struct OverviewView: View {
             .toolbar(.hidden, for: .navigationBar)
             .toast($model.toast)
             .onAppear {
-                Task { await model.refreshIfStale(after: 5, using: session.client()) }
+                Task { await model.refreshIfStale(after: 5, using: session.client(for: serverScope)) }
             }
             .onChange(of: scenePhase) { phase in
                 guard phase == .active else { return }
-                Task { await model.refreshIfStale(after: 5, using: session.client()) }
+                Task { await model.refreshIfStale(after: 5, using: session.client(for: serverScope)) }
             }
         }
     }
 
     private func reload() {
-        Task { await model.load(using: session.client(), syncBalance: true) }
+        Task { await model.load(using: session.client(for: serverScope), syncBalance: true) }
     }
 
     private func runBatch(_ action: BatchAction) {
-        Task { await model.run(action, using: session.client()) }
+        Task { await model.run(action, using: session.client(for: serverScope)) }
     }
 }

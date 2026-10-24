@@ -125,6 +125,30 @@ final class ServerProfileTests: XCTestCase {
         XCTAssertNotNil(store.credentialError)
     }
 
+    @MainActor func testOldViewScopeCannotAcquireNewServerCredentials() {
+        let (store, _, defaults, name) = fixture()
+        defer { defaults.removePersistentDomain(forName: name) }
+        store.update(apiKey: "rn-unit-test-key")
+        let oldScope = store.revision
+        XCTAssertNotNil(store.client(for: oldScope))
+        store.selectProfile("dm")
+        store.selectProfile("rn")
+        XCTAssertNil(store.client(for: oldScope))
+        XCTAssertNotNil(store.client(for: store.revision))
+    }
+
+    @MainActor func testCapturedHubClientKeepsItsOriginAfterSwitch() {
+        let (store, _, defaults, name) = fixture()
+        defer { defaults.removePersistentDomain(forName: name) }
+        store.selectProfile("dm")
+        store.updateHubToken("dm-unit-test-session")
+        let captured = store.hubClient()
+        store.selectProfile("rn")
+        XCTAssertNil(store.hubClient())
+        XCTAssertEqual(captured?.baseURL.host, "dmwb.gpcpa.cc.cd")
+        XCTAssertEqual(captured?.token, "dm-unit-test-session")
+    }
+
     func testCredentialScopeNormalizesURLButDistinguishesPortPathAndBackend() {
         let p = ServerProfile.defaults[0]
         var equivalent = p

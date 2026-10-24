@@ -3,6 +3,7 @@ import SwiftUI
 /// 请求日志：请求指标块 + 最近请求流水。
 struct RequestLogsView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
 
     @StateObject private var metrics = Loader<RequestMetrics>()
     @StateObject private var logs = Loader<JSONValue>()
@@ -81,7 +82,7 @@ struct RequestLogsView: View {
     }
 
     private func refreshAll() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await metrics.load { try await client.requestMetrics() }
         await logs.load { try await client.requestLogs(limit: 150) }
     }

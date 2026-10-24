@@ -8,6 +8,7 @@ struct ModelTogglesView: View {
     let account: Account
 
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @State private var models: [ModelInfo] = []
     @State private var offModels: Set<String> = []
     @State private var query = ""
@@ -148,7 +149,7 @@ struct ModelTogglesView: View {
     // MARK: - 动作
 
     private func load() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         isLoading = true
         defer { isLoading = false }
         do {
@@ -181,7 +182,7 @@ struct ModelTogglesView: View {
         }
         Task {
             defer { busy.remove(id) }
-            guard let client = session.client() else {
+            guard let client = session.client(for: serverScope) else {
                 offModels = previous
                 return
             }

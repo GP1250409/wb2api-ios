@@ -6,6 +6,7 @@ import SwiftUI
 /// （`POST /balance_all`），否则只是重读本地账本，看到的历史不会变。
 struct CreditHistoryView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @StateObject private var loader = Loader<CreditHistory>()
     @State private var isSyncing = false
 
@@ -77,7 +78,7 @@ struct CreditHistoryView: View {
     /// - Parameter syncUpstream: true 时先触发后端全量刷新余额（会真实请求一轮上游），
     ///   账本落新流水后再读历史。
     private func load(syncUpstream: Bool = false) async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         if syncUpstream, !isSyncing {
             isSyncing = true
             // 同步失败不打断：本地账本仍是可展示的历史；节流避免连续下拉打爆上游

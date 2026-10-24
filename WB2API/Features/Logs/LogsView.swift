@@ -6,6 +6,7 @@ struct LogsView: View {
     var keyword: String?
 
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
 
     @StateObject private var logs = Loader<LogsResponse>()
     @State private var channel: LogChannel = .all
@@ -151,7 +152,7 @@ struct LogsView: View {
     }
 
     private func refreshLogs() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await logs.load { try await client.logs() }
     }
 

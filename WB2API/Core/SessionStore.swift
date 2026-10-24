@@ -42,8 +42,9 @@ final class SessionStore: ObservableObject {
         }
         profiles = list
         let requested = defaults.string(forKey: "wb2api.activeProfile") ?? list[0].id
-        activeProfileID = list.contains { $0.id == requested } ? requested : list[0].id
-        baseURLString = list.first { $0.id == activeProfileID }!.address
+        let selected = list.contains { $0.id == requested } ? requested : list[0].id
+        activeProfileID = selected
+        baseURLString = list.first { $0.id == selected }!.address
         // Migrate the old single RN key once. Never reinterpret an API key as a Hub session token.
         if saved == nil, let rn = list.first(where: { $0.backend == .panel }),
            let account = rn.credentialAccount, let old = vault.read("api_key"), !old.isEmpty,
@@ -101,7 +102,8 @@ final class SessionStore: ObservableObject {
         persist()
     }
 
-    func client(session: URLSession = .panel) -> APIClient? {
+    func client(session: URLSession = .panel, for scope: UUID? = nil) -> APIClient? {
+        guard scope == nil || scope == revision else { return nil }
         guard backend == .panel, let baseURL else { return nil }
         return APIClient(baseURL: baseURL, apiKey: apiKey, session: session)
     }

@@ -3,6 +3,7 @@ import SwiftUI
 /// 任务：队列状态 + 批量操作 + 扫描结果（逐账号/逐任务勾选）+ 作业列表。
 struct TasksView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
 
     @StateObject private var queue = Loader<TaskQueue>()
     @StateObject private var jobs = Loader<JSONValue>()
@@ -140,7 +141,7 @@ struct TasksView: View {
     }
 
     private func refreshAll() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await queue.load { try await client.taskQueue() }
         await jobs.load { try await client.taskJobs() }
     }
@@ -182,7 +183,7 @@ struct TasksView: View {
         Task {
             isScanning = true
             defer { isScanning = false }
-            guard let client = session.client() else {
+            guard let client = session.client(for: serverScope) else {
                 toast = Toast(kind: .failure, text: "尚未配置服务器地址")
                 return
             }
@@ -228,7 +229,7 @@ struct TasksView: View {
         let tasks = selectedTasks
         guard !tasks.isEmpty else { return }
         Task {
-            guard let client = session.client() else {
+            guard let client = session.client(for: serverScope) else {
                 toast = Toast(kind: .failure, text: "尚未配置服务器地址")
                 return
             }
@@ -252,7 +253,7 @@ struct TasksView: View {
         Task {
             busyTaskID = task.id
             defer { busyTaskID = nil }
-            guard let client = session.client() else { return }
+            guard let client = session.client(for: serverScope) else { return }
             do {
                 let outcome = try await client.runTask(uid: task.uid, code: task.code)
                 toast = Toast(
@@ -271,7 +272,7 @@ struct TasksView: View {
         Task {
             busyTaskID = task.id
             defer { busyTaskID = nil }
-            guard let client = session.client() else {
+            guard let client = session.client(for: serverScope) else {
                 toast = Toast(kind: .failure, text: "尚未配置服务器地址")
                 return
             }
@@ -303,7 +304,7 @@ struct TasksView: View {
 
     /// 批量刷新若干账号的任务状态并回填（避免整页重扫）。
     private func refreshTasks(for uids: Set<String>) async {
-        guard let client = session.client(), !uids.isEmpty else { return }
+        guard let client = session.client(for: serverScope), !uids.isEmpty else { return }
         for uid in uids {
             guard let sample = scannedTasks.first(where: { $0.uid == uid }) else { continue }
             do {
@@ -324,7 +325,7 @@ struct TasksView: View {
     }
 
     private func runBatch(_ action: String, title: String, successText: String) async {
-        guard let client = session.client() else {
+        guard let client = session.client(for: serverScope) else {
             toast = Toast(kind: .failure, text: "尚未配置服务器地址")
             return
         }

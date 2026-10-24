@@ -8,6 +8,7 @@ struct ReloginView: View {
     let account: Account
 
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @Environment(\.dismiss) private var dismiss
 
     @State private var start: LoginStartResponse?
@@ -164,7 +165,7 @@ struct ReloginView: View {
     }
 
     private func begin() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         isStarting = true
         errorText = nil
         defer { isStarting = false }
@@ -186,7 +187,7 @@ struct ReloginView: View {
                 return
             }
             if Task.isCancelled || result != nil { return }
-            guard let client = session.client() else { return }
+            guard let client = session.client(for: serverScope) else { return }
             do {
                 let response = try await client.loginPoll(state: state)
                 if response.done == true {

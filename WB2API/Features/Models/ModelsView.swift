@@ -3,6 +3,7 @@ import SwiftUI
 /// 模型目录：搜索 + 默认/繁忙标记 + 详情导航 + 探测结果弹层。
 struct ModelsView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
 
     @StateObject private var models = Loader<ModelsResponse>()
     @StateObject private var probes = Loader<JSONValue>()
@@ -110,12 +111,12 @@ struct ModelsView: View {
     }
 
     private func refreshModels() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await models.load { try await client.models() }
     }
 
     private func refreshProbes() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await probes.load { try await client.modelProbes() }
     }
 

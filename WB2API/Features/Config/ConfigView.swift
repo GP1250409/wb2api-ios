@@ -3,6 +3,7 @@ import SwiftUI
 /// 配置：按顶层 key 分组的原生表单 + 高级 JSON 编辑。
 struct ConfigView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @StateObject private var editor = ConfigEditor()
     @State private var isLoading = false
     @State private var errorText: String?
@@ -86,7 +87,7 @@ struct ConfigView: View {
     // MARK: - 动作
 
     private func load() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         isLoading = true
         defer { isLoading = false }
         do {
@@ -107,7 +108,7 @@ struct ConfigView: View {
     }
 
     private func performSave() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         isSaving = true
         defer { isSaving = false }
         do {

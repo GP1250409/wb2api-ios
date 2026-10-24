@@ -3,6 +3,7 @@ import SwiftUI
 /// 「数据」Tab：用量总览（按账号 / 模型 / 域），并通往积分与余额历史。
 struct DataView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @StateObject private var loader = Loader<UsageSnapshot>()
     @State private var dimension: UsageDimension = .account
     @State private var range: UsageRange = .days7
@@ -88,7 +89,7 @@ struct DataView: View {
     // MARK: - 动作
 
     private func load() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         let hours = range.hours
         await loader.load { try await client.usage(hours: hours) }
     }

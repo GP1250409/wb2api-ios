@@ -3,6 +3,7 @@ import SwiftUI
 /// 补偿：查看待领取补偿，并一键对所有账号执行领取。
 struct CompensationView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @StateObject private var loader = Loader<JSONValue>()
     @State private var isClaiming = false
     @State private var isConfirmingClaim = false
@@ -47,7 +48,7 @@ struct CompensationView: View {
     // MARK: - 动作
 
     private func load() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await loader.load { try await client.compensation() }
     }
 
@@ -64,7 +65,7 @@ struct CompensationView: View {
     }
 
     private func performClaim() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         isClaiming = true
         defer { isClaiming = false }
         do {

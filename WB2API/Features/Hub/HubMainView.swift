@@ -1,17 +1,18 @@
 import SwiftUI
 
 struct HubMainView: View {
+    let client: HubClient
     var body: some View {
         TabView {
-            HubResourceView(kind: .overview)
+            HubResourceView(client: client, kind: .overview)
                 .tabItem { Label("概览", systemImage: "speedometer") }
-            HubResourceView(kind: .accounts)
+            HubResourceView(client: client, kind: .accounts)
                 .tabItem { Label("账号", systemImage: "person.2.fill") }
-            HubResourceView(kind: .tasks)
+            HubResourceView(client: client, kind: .tasks)
                 .tabItem { Label("任务", systemImage: "checklist") }
-            HubResourceView(kind: .usage)
+            HubResourceView(client: client, kind: .usage)
                 .tabItem { Label("数据", systemImage: "chart.bar.xaxis") }
-            HubSettingsView()
+            HubSettingsView(client: client)
                 .tabItem { Label("更多", systemImage: "ellipsis") }
         }
     }
@@ -77,6 +78,7 @@ final class HubResourceModel: ObservableObject {
 
 struct HubResourceView: View {
     @EnvironmentObject private var session: SessionStore
+    let client: HubClient
     let kind: HubResourceKind
     @StateObject private var model = HubResourceModel()
     @State private var range = "today"
@@ -118,7 +120,7 @@ struct HubResourceView: View {
                 if let action = pending {
                     Button("确认执行") {
                         pending = nil
-                        let client = session.hubClient()
+                        let client = self.client
                         Task {
                             if await model.perform(client: client, path: action.path, body: action.body) { await reload(using: client) }
                         }
@@ -132,7 +134,7 @@ struct HubResourceView: View {
     }
 
     private func reload(using client: HubClient? = nil) async {
-        await model.load(kind: kind, client: client ?? session.hubClient(), range: range, uid: taskUID)
+        await model.load(kind: kind, client: client ?? self.client, range: range, uid: taskUID)
     }
 
     private var overviewSections: some View {

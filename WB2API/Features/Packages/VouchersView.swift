@@ -8,6 +8,7 @@ import UIKit
 /// 通用 JSON 视图会把 11 个账号的空列表全铺出来，看起来像坏了。
 struct VouchersView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @StateObject private var loader = Loader<VoucherResponse>()
     @State private var toast: Toast?
 
@@ -91,7 +92,7 @@ struct VouchersView: View {
     }
 
     private func load() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         await loader.load { try await client.vouchers() }
     }
 

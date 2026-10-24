@@ -7,6 +7,7 @@ import UniformTypeIdentifiers
 /// `{ok, total, imported, skipped, errors}`；这里只负责选文件、上传、呈现结果。
 struct ImportAccountsView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
 
     @State private var isPicking = false
     @State private var isUploading = false
@@ -83,7 +84,7 @@ struct ImportAccountsView: View {
 
     private func upload(_ url: URL) {
         Task {
-            guard let client = session.client() else { return }
+            guard let client = session.client(for: serverScope) else { return }
             isUploading = true
             errorText = nil
             result = nil

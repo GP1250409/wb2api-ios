@@ -9,12 +9,13 @@ struct RootView: View {
             Divider()
             Group {
                 if session.isConfigured {
-                    if session.backend == .hub { HubMainView() }
+                    if session.backend == .hub, let client = session.hubClient() { HubMainView(client: client) }
                     else { MainTabsView() }
                 } else {
                     SetupView()
                 }
             }
+            .environment(\.serverScope, session.revision)
             .id(session.revision)
         }
     }

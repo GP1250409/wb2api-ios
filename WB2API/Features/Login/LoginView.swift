@@ -5,6 +5,7 @@ import SwiftUI
 /// 轮询用 `.task(id:)` 绑定授权 state：换链接、离开页面都会自动取消旧循环。
 struct LoginView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
 
     /// 登录域：国内版 cn / 国际版 global
     @State private var realm = "cn"
@@ -164,7 +165,7 @@ struct LoginView: View {
 
     private func addAPIKey() {
         Task {
-            guard let client = session.client() else { return }
+            guard let client = session.client(for: serverScope) else { return }
             isAddingKey = true
             defer { isAddingKey = false }
             let token = apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -202,7 +203,7 @@ struct LoginView: View {
     }
 
     private func performStart() async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         isStarting = true
         errorText = nil
         pollNote = nil
@@ -249,7 +250,7 @@ struct LoginView: View {
     }
 
     private func pollOnce(state: String) async {
-        guard let client = session.client() else { return }
+        guard let client = session.client(for: serverScope) else { return }
         do {
             let response = try await client.loginPoll(state: state)
             if response.done == true {

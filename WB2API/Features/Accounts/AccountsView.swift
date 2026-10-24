@@ -3,6 +3,7 @@ import SwiftUI
 /// 账号 Tab：搜索 + 筛选 + 点按进详情（zoom 转场因玻璃卡掉帧已移除）。
 struct AccountsView: View {
     @EnvironmentObject private var session: SessionStore
+    @Environment(\.serverScope) private var serverScope
     @StateObject private var model = AccountsModel()
     @State private var path = NavigationPath()
     @State private var reloginAccount: Account?
@@ -27,7 +28,7 @@ struct AccountsView: View {
                 prompt: "搜索昵称或 UID"
             )
             .refreshable {
-                await model.load(using: session.client(), syncBalance: true)
+                await model.load(using: session.client(for: serverScope), syncBalance: true)
             }
             .navigationDestination(for: Account.self) { account in
                 AccountDetailView(account: account)
@@ -65,12 +66,12 @@ struct AccountsView: View {
             .toast($model.toast)
             .task { await poll() }
             .onAppear {
-                Task { await model.refreshIfStale(after: 3, using: session.client()) }
+                Task { await model.refreshIfStale(after: 3, using: session.client(for: serverScope)) }
             }
             .onChange(of: scenePhase) { phase in
                 // 从后台回来时拉一次（仅轻量读缓存级 overview，不触发上游同步）
                 guard phase == .active else { return }
-                Task { await model.refreshIfStale(after: 3, using: session.client()) }
+                Task { await model.refreshIfStale(after: 3, using: session.client(for: serverScope)) }
             }
         }
     }
@@ -117,15 +118,15 @@ struct AccountsView: View {
             }
             // 详情页打开时不刷新列表，避免列表重排和转场抢帧
             guard path.isEmpty else { continue }
-            await model.refreshIfStale(after: 10, using: session.client())
+            await model.refreshIfStale(after: 10, using: session.client(for: serverScope))
         }
     }
 
     private func reload() {
-        Task { await model.load(using: session.client(), syncBalance: true) }
+        Task { await model.load(using: session.client(for: serverScope), syncBalance: true) }
     }
 
     private func perform(_ command: AccountCommand, on account: Account) {
-        Task { await model.perform(command, on: account, using: session.client()) }
+        Task { await model.perform(command, on: account, using: session.client(for: serverScope)) }
     }
 }
