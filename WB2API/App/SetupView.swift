@@ -17,6 +17,7 @@ struct SetupView: View {
                 VStack(spacing: Metrics.l) {
                     header
                     form
+                    AccessLoginButton(address: address) { error = nil }
                     if let error {
                         ErrorBanner(message: error, retry: { Task { await connect() } })
                     }

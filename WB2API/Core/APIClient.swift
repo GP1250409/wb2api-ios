@@ -4,6 +4,8 @@ import Foundation
 
 enum APIError: LocalizedError, Equatable {
     case unauthorized
+    case cloudflareAccessRequired
+    case unexpectedHTML
     case http(Int, String?)
     case decoding(String)
     case transport(String)
@@ -12,6 +14,8 @@ enum APIError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .unauthorized: return "密钥无效或未填写"
+        case .cloudflareAccessRequired: return "需要完成 Cloudflare Access 验证，或登录已过期。请点「CF 邮箱验证」；已连接时到「更多 → 设置」重新验证。"
+        case .unexpectedHTML: return "服务器返回了网页而不是 JSON，请检查面板地址或先完成 CF 邮箱验证。"
         case .http(let code, let msg): return msg?.isEmpty == false ? msg : "HTTP \(code)"
         case .decoding(let detail): return "数据解析失败：\(detail)"
         case .transport(let detail): return detail
@@ -29,7 +33,7 @@ struct APIClient: Sendable {
     var apiKey: String
     var session: URLSession
 
-    init(baseURL: URL, apiKey: String, session: URLSession = .shared) {
+    init(baseURL: URL, apiKey: String, session: URLSession = .panel) {
         self.baseURL = baseURL
         self.apiKey = apiKey
         self.session = session
@@ -73,7 +77,36 @@ struct APIClient: Sendable {
         return "\(stripped.prefix(120))"
     }
 
-    private func execute(_ req: URLRequest) async throws -> Data {        let data: Data
+    static func validateResponse(_ http: HTTPURLResponse, data: Data) throws {
+        let location = http.value(forHTTPHeaderField: "Location").flatMap { URL(string: $0, relativeTo: http.url) }
+        let targets = [http.url, location].compactMap { $0 }
+        let isAccess = targets.contains { url in
+            let host = url.host?.lowercased() ?? ""
+            return host == "cloudflareaccess.com" || host.hasSuffix(".cloudflareaccess.com")
+                || url.path.hasPrefix("/cdn-cgi/access/")
+        }
+        let html = http.value(forHTTPHeaderField: "Content-Type")?.lowercased().contains("text/html") == true
+        let prefix = String(data: data.prefix(4096), encoding: .utf8)?.lowercased() ?? ""
+        if isAccess || (html && (prefix.contains("cloudflare access") || prefix.contains("cloudflareaccess.com") || prefix.contains("/cdn-cgi/access/"))) {
+            throw APIError.cloudflareAccessRequired
+        }
+        if http.statusCode == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(http.statusCode) else {
+            let raw = String(data: data.prefix(600), encoding: .utf8) ?? ""
+            throw APIError.http(http.statusCode, Self.humanMessage(raw, code: http.statusCode))
+        }
+        if html || prefix.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("<!doctype html") || prefix.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("<html") {
+            throw APIError.unexpectedHTML
+        }
+    }
+
+    private func execute(_ original: URLRequest) async throws -> Data {
+        var req = original
+        req.httpShouldHandleCookies = false
+        if let url = req.url, let header = await AccessCookieBridge.header(for: url) {
+            req.setValue(header, forHTTPHeaderField: "Cookie")
+        }
+        let data: Data
         let response: URLResponse
         do {
             (data, response) = try await session.data(for: req)
@@ -85,11 +118,7 @@ struct APIClient: Sendable {
         guard let http = response as? HTTPURLResponse else {
             throw APIError.transport("无 HTTP 响应")
         }
-        if http.statusCode == 401 { throw APIError.unauthorized }
-        guard (200..<300).contains(http.statusCode) else {
-            let raw = String(data: data.prefix(600), encoding: .utf8) ?? ""
-            throw APIError.http(http.statusCode, Self.humanMessage(raw, code: http.statusCode))
-        }
+        try Self.validateResponse(http, data: data)
         return data
     }
 

@@ -31,7 +31,7 @@ final class SessionStore: ObservableObject {
         return URL(string: s)
     }
 
-    func client(session: URLSession = .shared) -> APIClient? {
+    func client(session: URLSession = .panel) -> APIClient? {
         guard let baseURL else { return nil }
         return APIClient(baseURL: baseURL, apiKey: apiKey, session: session)
     }

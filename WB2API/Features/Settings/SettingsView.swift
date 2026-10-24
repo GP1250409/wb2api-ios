@@ -38,6 +38,16 @@ struct SettingsView: View {
             }
 
             Section {
+                AccessLoginButton(address: session.baseURLString) {
+                    testMessage = nil
+                }
+            } header: {
+                Text("Cloudflare Access")
+            } footer: {
+                Text("CF 登录按站点保存。验证过期后在此重新登录；邮箱验证码不需要发送给任何人。")
+            }
+
+            Section {
                 SecureField("api_key", text: $keyDraft)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -77,8 +87,8 @@ struct SettingsView: View {
             Section {
                 LabeledContent("版本", value: appVersion)
                 LabeledContent("构建", value: buildNumber)
-                LabeledContent("系统要求", value: "iOS 26")
-                LabeledContent("设计", value: "Liquid Glass · 紫色强调")
+                LabeledContent("系统要求", value: "iOS 16 或更新版本")
+                LabeledContent("设计", value: "材质背景 · 紫色强调")
             } header: {
                 Text("关于")
             } footer: {
