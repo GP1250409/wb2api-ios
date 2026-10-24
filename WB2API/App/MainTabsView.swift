@@ -11,7 +11,7 @@ struct MainTabsView: View {
     var body: some View {
         TabView(selection: $selection) {
             OverviewView()
-                .tabItem { Label("概览", systemImage: "gauge.with.dots.needle.50percent") }
+                .tabItem { Label("概览", systemImage: "speedometer") }
                 .tag(AppTab.overview)
             AccountsView()
                 .tabItem { Label("账号", systemImage: "person.2.fill") }
