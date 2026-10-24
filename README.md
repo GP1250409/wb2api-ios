@@ -4,6 +4,7 @@
 ![Platform](https://img.shields.io/badge/iOS-26.0%2B-blue)
 ![Swift](https://img.shields.io/badge/Swift-6.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![Download](https://img.shields.io/badge/download-latest%20IPA-blue)](https://github.com/chenyynx/wb2api-ios/releases/latest)
 
 [workbuddy2api-panel](https://github.com/misakano7545/workbuddy2api-panel) 的原生 iOS 客户端，用于在手机上完成账号池日常运维：状态巡检、任务自动化、用量与日志查询、配置变更。
 
@@ -82,6 +83,7 @@ xcodebuild test -project WB2API.xcodeproj -scheme WB2API \
 
 ## CI 与分发
 
+- 最新安装包：[Releases](https://github.com/chenyynx/wb2api-ios/releases/latest)（未签名 IPA，重签后安装）。
 - 每次推送触发两条流水线：模拟器单元测试、无签名 IPA 构建。
 - 产物在 Actions 页面的 `WB2API-unsigned-ipa` artifact 中，使用全能签 / SideStore / AltStore 等工具重签后安装。
 - Bundle ID：`org.example.wb2api`。
