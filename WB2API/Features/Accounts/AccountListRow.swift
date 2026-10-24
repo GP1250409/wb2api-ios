@@ -26,22 +26,20 @@ struct AccountListRow: View {
                 .opacity(phase.isIdentity ? 1 : 0.6)
                 .scaleEffect(phase.isIdentity ? 1 : 0.97)
         }
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+        // ScrollView 没有 swipeActions，操作移到长按菜单（能力不丢）
+        .contextMenu {
             Button {
                 onAction(.checkin)
             } label: {
                 Label("签到", systemImage: "checkmark.seal")
             }
-            .tint(Accent.primary)
 
             Button {
                 onAction(.revive)
             } label: {
                 Label("复活", systemImage: "bolt.heart")
             }
-            .tint(.orange)
-        }
-        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+
             Button {
                 onAction(account.isDisabled ? .resume : .pause)
             } label: {
@@ -50,7 +48,8 @@ struct AccountListRow: View {
                     systemImage: account.isDisabled ? "play.fill" : "pause.fill"
                 )
             }
-            .tint(.orange)
+
+            Divider()
 
             Button(role: .destructive) {
                 onAction(.disable)

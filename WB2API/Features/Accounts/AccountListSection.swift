@@ -1,6 +1,10 @@
 import SwiftUI
 
-/// 账号列表主体：骨架 / 空态 / 行集合，独立成文件以缩短类型推断时间。
+/// 账号列表主体：骨架 / 空态 / 卡片集合。
+///
+/// 原来用 `List` —— List 会把 `glassEffect` 压平，同一张玻璃卡在概览（ScrollView）
+/// 里是通透的，在账号页却发灰。这里改成和概览一致：ScrollView + LazyVStack。
+/// 行操作（签到/复活/暂停/禁用）保留在长按菜单里。
 struct AccountListSection: View {
     let model: AccountsModel
     let zoomNamespace: Namespace.ID
@@ -9,73 +13,49 @@ struct AccountListSection: View {
     var onCommand: (AccountCommand, Account) -> Void
     var onResetFilter: () -> Void = {}
 
-    /// 上下留 0：卡片间距交给 List 的 rowSpacing，和概览「账号池」一致。
-    private let rowInsets = EdgeInsets(
-        top: 0,
-        leading: Metrics.m,
-        bottom: 0,
-        trailing: Metrics.m
-    )
-
     var body: some View {
-        List {
-            if let updated = model.lastUpdated {
-                HStack(spacing: Metrics.xs) {
-                    Image(systemName: "clock.arrow.circlepath")
-                    Text("更新于 \(updated, format: .dateTime.hour().minute().second())")
-                    Spacer()
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: Metrics.s) {
+                if let message = model.error {
+                    ErrorBanner(message: message, retry: onReload)
                 }
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-                .listRowInsets(EdgeInsets(top: Metrics.xs, leading: Metrics.m, bottom: 0, trailing: Metrics.m))
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-            }
-            if let message = model.error {
-                ErrorBanner(message: message, retry: onReload)
-                    .listRowInsets(rowInsets)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-            }
 
-            if model.isLoading && model.accounts.isEmpty {
-                LoadingSkeleton(rows: 6)
-                    .listRowInsets(rowInsets)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-            } else if model.filtered.isEmpty {
-                AccountsEmptyState(
-                    isSearching: model.isSearching,
-                    query: model.query,
-                    title: model.emptyTitle,
-                    systemImage: model.emptyIcon,
-                    message: model.emptyMessage,
-                    isFiltered: model.filter != .all
-                ) {
-                    onResetFilter()
-                }
-            } else {
-                ForEach(model.filtered) { account in
-                    AccountListRow(
-                        account: account,
-                        isBusy: model.busyUIDs.contains(account.uid),
-                        namespace: zoomNamespace,
-                        onOpen: { onOpen(account) }
-                    ) { command in
-                        onCommand(command, account)
+                if model.isLoading && model.accounts.isEmpty {
+                    LoadingSkeleton(rows: 6)
+                } else if model.filtered.isEmpty {
+                    AccountsEmptyState(
+                        isSearching: model.isSearching,
+                        query: model.query,
+                        title: model.emptyTitle,
+                        systemImage: model.emptyIcon,
+                        message: model.emptyMessage,
+                        isFiltered: model.filter != .all
+                    ) {
+                        onResetFilter()
                     }
-                    .listRowInsets(rowInsets)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                } else {
+                    updateStamp
+
+                    ForEach(model.filtered) { account in
+                        AccountListRow(
+                            account: account,
+                            isBusy: model.busyUIDs.contains(account.uid),
+                            namespace: zoomNamespace,
+                            onOpen: { onOpen(account) }
+                        ) { command in
+                            onCommand(command, account)
+                        }
+                    }
                 }
             }
+            .padding(.horizontal, Metrics.m)
+            .padding(.bottom, Metrics.xl)
         }
-        .listStyle(.plain)
-        .listRowSpacing(Metrics.s)
-        .scrollContentBackground(.hidden)
+        .scrollIndicators(.hidden)
+        // 与概览同款暖紫渐变：玻璃需要背后的颜色才通透。
         .background {
             LinearGradient(
-                colors: [Accent.soft.opacity(0.8), Color.clear],
+                colors: [Accent.soft.opacity(0.9), Color.clear],
                 startPoint: .top,
                 endPoint: .center
             )
@@ -83,5 +63,21 @@ struct AccountListSection: View {
         }
         .background(.background)
         .navigationTitle("账号")
+    }
+
+    private var updateStamp: some View {
+        HStack(spacing: Metrics.xs) {
+            Image(systemName: "clock.arrow.circlepath")
+            Text("更新于 \(updateText)")
+            Spacer()
+        }
+        .font(.caption2)
+        .foregroundStyle(.tertiary)
+        .padding(.top, Metrics.xs)
+    }
+
+    private var updateText: String {
+        guard let date = model.lastUpdated else { return "—" }
+        return date.formatted(date: .omitted, time: .standard)
     }
 }
