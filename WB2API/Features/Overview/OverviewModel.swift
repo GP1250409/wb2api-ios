@@ -38,7 +38,7 @@ final class OverviewModel {
         if syncBalance {
             await BalanceSync.refreshAll(client: client)
         }
-        await loader.load { try await client.overview() }
+        await loader.load(force: syncBalance) { try await client.overview() }
         // 今日 token 来自 usage 小时桶，失败不影响主数据
         try? await usageLoader.load { try await client.usage() }
     }

@@ -6,6 +6,7 @@ struct AccountsView: View {
     @State private var model = AccountsModel()
     @State private var path = NavigationPath()
     @Namespace private var zoomNamespace
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         @Bindable var model = model
@@ -43,6 +44,11 @@ struct AccountsView: View {
             .animation(Motion.snappy, value: model.filter)
             .toast($model.toast)
             .onAppear {
+                Task { await model.refreshIfStale(after: 3, using: session.client()) }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // 从后台回来时拉一次（仅轻量读缓存级 overview，不触发上游同步）
+                guard phase == .active else { return }
                 Task { await model.refreshIfStale(after: 3, using: session.client()) }
             }
         }

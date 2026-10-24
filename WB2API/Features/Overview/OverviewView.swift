@@ -5,6 +5,7 @@ import SwiftUI
 /// 数据统一走 `client.overview()`（公网没有 `/status`）。
 struct OverviewView: View {
     @Environment(SessionStore.self) private var session
+    @Environment(\.scenePhase) private var scenePhase
     @State private var model = OverviewModel()
 
     var body: some View {
@@ -76,6 +77,10 @@ struct OverviewView: View {
             .toolbar(.hidden, for: .navigationBar)
             .toast($model.toast)
             .onAppear {
+                Task { await model.refreshIfStale(after: 5, using: session.client()) }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
                 Task { await model.refreshIfStale(after: 5, using: session.client()) }
             }
         }

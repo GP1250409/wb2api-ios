@@ -30,7 +30,7 @@ final class AccountDetailModel {
         if syncBalance, let uid = lastUID {
             await BalanceSync.refreshAccount(uid, client: client)
         }
-        await loader.load { try await client.overview() }
+        await loader.load(force: syncBalance) { try await client.overview() }
     }
 
     /// 记住当前查看的账号，供余额同步用。

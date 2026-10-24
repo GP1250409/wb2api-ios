@@ -66,7 +66,8 @@ final class AccountsModel {
         if syncBalance {
             await BalanceSync.refreshAll(client: client)
         }
-        await loader.load { try await client.overview() }
+        // 主动刷新强制重发，不被进行中的轮询挡掉
+        await loader.load(force: syncBalance) { try await client.overview() }
     }
 
     // MARK: 单号操作

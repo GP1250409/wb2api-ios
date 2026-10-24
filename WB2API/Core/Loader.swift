@@ -12,9 +12,10 @@ final class Loader<Value> {
 
     var isEmpty: Bool { value == nil && error == nil }
 
-    func load(_ operation: @escaping @MainActor () async throws -> Value) async {
-        // 同一时刻只跑一轮：下拉刷新撞上进行中的自动刷新时不应并发重复请求
-        guard !isLoading else { return }
+    /// - Parameter force: 用户主动刷新时为 true——即使上一轮还没结束也再发一次，
+    ///   避免「下拉没反应、数据停在旧值」。自动轮询保持 false，不并发堆请求。
+    func load(force: Bool = false, _ operation: @escaping @MainActor () async throws -> Value) async {
+        guard force || !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
         do {
