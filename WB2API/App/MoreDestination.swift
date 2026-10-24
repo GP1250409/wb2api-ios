@@ -13,4 +13,5 @@ enum MoreDestination: Hashable {
     case login
     case importAccounts
     case settings
+    case about
 }

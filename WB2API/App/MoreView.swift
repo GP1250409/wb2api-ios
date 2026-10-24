@@ -54,6 +54,16 @@ struct MoreView: View {
                     }
                 }
 
+                Section("关于") {
+                    NavigationLink(value: MoreDestination.about) {
+                        MoreEntryRow(
+                            title: "开源",
+                            subtitle: "仓库、构建与反馈渠道",
+                            systemImage: "chevron.left.forwardslash.chevron.right"
+                        )
+                    }
+                }
+
                 Section("系统") {
                     NavigationLink(value: MoreDestination.config) {
                         MoreEntryRow(
@@ -97,6 +107,7 @@ struct MoreView: View {
                 case .login: LoginView()
                 case .importAccounts: ImportAccountsView()
                 case .settings: SettingsView()
+                case .about: AboutView()
                 }
             }
         }
