@@ -1,6 +1,8 @@
 import SwiftUI
 
-/// 账号列表的一行：玻璃底、点按 zoom 转场、四个滑动操作。
+/// 账号列表的一行：和概览「账号池」完全同款——
+/// NavigationLink + 12pt 内边距 + `glassInteractive`，点按走 zoom 转场。
+/// 行操作放在长按菜单里（ScrollView 没有 swipeActions）。
 struct AccountListRow: View {
     let account: Account
     var isBusy: Bool = false
@@ -9,15 +11,10 @@ struct AccountListRow: View {
     let onAction: (AccountCommand) -> Void
 
     var body: some View {
-        // 用 Button 而不是 NavigationLink：List 里的 NavigationLink 会自带 chevron，
-        // 和概览「账号池」的卡片样式不一致。点按行为与 zoom 转场保持不变。
-        Button(action: onOpen) {
+        NavigationLink(value: account) {
             AccountRowView(account: account, isBusy: isBusy)
-                .padding(Metrics.m)
-                .glassEffect(
-                    .regular.tint(Accent.primary.opacity(0.10)).interactive(),
-                    in: .rect(cornerRadius: Metrics.radiusM)
-                )
+                .padding(Metrics.m - Metrics.xs)
+                .glassInteractive(cornerRadius: Metrics.radiusM)
         }
         .buttonStyle(.plain)
         .matchedTransitionSource(id: account.uid, in: namespace)
@@ -26,7 +23,6 @@ struct AccountListRow: View {
                 .opacity(phase.isIdentity ? 1 : 0.6)
                 .scaleEffect(phase.isIdentity ? 1 : 0.97)
         }
-        // ScrollView 没有 swipeActions，操作移到长按菜单（能力不丢）
         .contextMenu {
             Button {
                 onAction(.checkin)
