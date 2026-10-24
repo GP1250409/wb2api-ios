@@ -14,7 +14,10 @@ struct AccountListRow: View {
         Button(action: onOpen) {
             AccountRowView(account: account, isBusy: isBusy)
                 .padding(Metrics.m)
-                .accountCard()
+                .glassEffect(
+                    .regular.tint(Accent.primary.opacity(0.10)).interactive(),
+                    in: .rect(cornerRadius: Metrics.radiusM)
+                )
         }
         .buttonStyle(.plain)
         .matchedTransitionSource(id: account.uid, in: namespace)
