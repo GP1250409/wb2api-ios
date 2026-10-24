@@ -14,6 +14,10 @@ struct OverviewDigest: Equatable, Sendable {
     let requests: Int
     /// 缓存命中率（来自 usage.totals）
     let cacheHitRate: Double?
+    /// 平均延迟（毫秒，来自 usage.totals）
+    let avgLatencyMs: Double?
+    /// 最近一批积分到期："11-21 · 剩 4,700"
+    let earliestExpiry: String?
     let successRate: Double?
     let inFlightFull: Bool
     let earliestRecovery: String?
@@ -29,6 +33,8 @@ struct OverviewDigest: Equatable, Sendable {
         totalCredits = overview.totalCredits
         requests = accounts.compactMap { $0.tokenUsage?.requestCount }.reduce(0, +)
         cacheHitRate = usage?.totals?.cacheHitRate
+        avgLatencyMs = usage?.totals?.avgLatencyMs
+        earliestExpiry = Self.earliestExpiryText(in: accounts)
         inFlightFull = overview.isInFlightFull
 
         let successes = accounts.compactMap(\.successCount).reduce(0, +)
@@ -75,6 +81,19 @@ struct OverviewDigest: Equatable, Sendable {
 
 
     // MARK: 计算
+
+    /// 全部账号里最近一批积分的到期日与剩余量。
+    private static func earliestExpiryText(in accounts: [Account]) -> String? {
+        let now = Date()
+        let candidates: [(Date, Int, String)] = accounts.compactMap { account in
+            guard let raw = account.creditsEarliestExpiry,
+                  let date = Fmt.parse(raw),
+                  date > now else { return nil }
+            return (date, account.creditsEarliestRemaining ?? 0, raw)
+        }
+        guard let first = candidates.min(by: { $0.0 < $1.0 }) else { return nil }
+        return "\(Fmt.day(first.2)) · 剩 \(Fmt.credits(first.1)) 分"
+    }
 
     /// 取最早恢复的那个冷却账号的原始时间戳，交给 `Fmt.countdown` 统一格式化。
     private static func earliestRecovery(in accounts: [Account]) -> String? {
