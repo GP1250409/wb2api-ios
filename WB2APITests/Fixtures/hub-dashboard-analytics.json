@@ -1,0 +1,236 @@
+{
+  "window": {
+    "since": 1799395200,
+    "until": 1800000000
+  },
+  "summary": {
+    "window": {
+      "requests": 250,
+      "errors": 2,
+      "prompt_tokens": 27008808,
+      "completion_tokens": 186030,
+      "total_tokens": 27194838,
+      "cached_tokens": 26333588,
+      "credit": 35.59,
+      "cost_cny": 4.05505,
+      "elapsed_sum": 3956400,
+      "elapsed_n": 252,
+      "speed_n": 0,
+      "speed_avg": 0
+    },
+    "all_time": {
+      "requests": 250,
+      "errors": 2,
+      "prompt_tokens": 27008808,
+      "completion_tokens": 186030,
+      "total_tokens": 27194838,
+      "cached_tokens": 26333588,
+      "credit": 35.59,
+      "cost_cny": 4.05505,
+      "elapsed_sum": 3956400,
+      "elapsed_n": 252,
+      "speed_n": 0,
+      "speed_avg": 0
+    }
+  },
+  "accounts": [
+    {
+      "uid": "fixture-0",
+      "nickname": "示例账号 1",
+      "realm": "cn",
+      "window": {
+        "requests": 250,
+        "errors": 2,
+        "prompt_tokens": 27008808,
+        "completion_tokens": 186030,
+        "total_tokens": 27194838,
+        "cached_tokens": 26333588,
+        "credit": 35.59,
+        "cost_cny": 4.05505,
+        "elapsed_sum": 3956400,
+        "elapsed_n": 252,
+        "speed_n": 0,
+        "speed_avg": 0
+      },
+      "all_time": {
+        "requests": 250,
+        "errors": 2,
+        "prompt_tokens": 27008808,
+        "completion_tokens": 186030,
+        "total_tokens": 27194838,
+        "cached_tokens": 26333588,
+        "credit": 35.59,
+        "cost_cny": 4.05505,
+        "elapsed_sum": 3956400,
+        "elapsed_n": 252,
+        "speed_n": 0,
+        "speed_avg": 0
+      }
+    },
+    {
+      "uid": "fixture-1",
+      "nickname": "示例账号 2",
+      "realm": "cn",
+      "window": {
+        "requests": 0,
+        "errors": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "cached_tokens": 0,
+        "credit": 0,
+        "cost_cny": 0,
+        "elapsed_sum": 0,
+        "elapsed_n": 0,
+        "speed_n": 0,
+        "speed_avg": 0
+      },
+      "all_time": {
+        "requests": 0,
+        "errors": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "cached_tokens": 0,
+        "credit": 0,
+        "cost_cny": 0,
+        "elapsed_sum": 0,
+        "elapsed_n": 0,
+        "speed_n": 0,
+        "speed_avg": 0
+      }
+    },
+    {
+      "uid": "fixture-2",
+      "nickname": "示例账号 3",
+      "realm": "cn",
+      "window": {
+        "requests": 0,
+        "errors": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "cached_tokens": 0,
+        "credit": 0,
+        "cost_cny": 0,
+        "elapsed_sum": 0,
+        "elapsed_n": 0,
+        "speed_n": 0,
+        "speed_avg": 0
+      },
+      "all_time": {
+        "requests": 0,
+        "errors": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "cached_tokens": 0,
+        "credit": 0,
+        "cost_cny": 0,
+        "elapsed_sum": 0,
+        "elapsed_n": 0,
+        "speed_n": 0,
+        "speed_avg": 0
+      }
+    },
+    {
+      "uid": "fixture-3",
+      "nickname": "示例账号 4",
+      "realm": "cn",
+      "window": {
+        "requests": 0,
+        "errors": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "cached_tokens": 0,
+        "credit": 0,
+        "cost_cny": 0,
+        "elapsed_sum": 0,
+        "elapsed_n": 0,
+        "speed_n": 0,
+        "speed_avg": 0
+      },
+      "all_time": {
+        "requests": 0,
+        "errors": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "cached_tokens": 0,
+        "credit": 0,
+        "cost_cny": 0,
+        "elapsed_sum": 0,
+        "elapsed_n": 0,
+        "speed_n": 0,
+        "speed_avg": 0
+      }
+    },
+    {
+      "uid": "fixture-4",
+      "nickname": "示例账号 5",
+      "realm": "intl",
+      "window": {
+        "requests": 0,
+        "errors": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "cached_tokens": 0,
+        "credit": 0,
+        "cost_cny": 0,
+        "elapsed_sum": 0,
+        "elapsed_n": 0,
+        "speed_n": 0,
+        "speed_avg": 0
+      },
+      "all_time": {
+        "requests": 0,
+        "errors": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+        "cached_tokens": 0,
+        "credit": 0,
+        "cost_cny": 0,
+        "elapsed_sum": 0,
+        "elapsed_n": 0,
+        "speed_n": 0,
+        "speed_avg": 0
+      }
+    }
+  ],
+  "models": [
+    {
+      "model": "deepseek-v4.1-flash",
+      "window": {
+        "requests": 250,
+        "errors": 2,
+        "prompt_tokens": 27008808,
+        "completion_tokens": 186030,
+        "total_tokens": 27194838,
+        "cached_tokens": 26333588,
+        "credit": 35.59,
+        "cost_cny": 4.05505,
+        "elapsed_sum": 3956400,
+        "elapsed_n": 252,
+        "speed_n": 0,
+        "speed_avg": 0
+      },
+      "all_time": {
+        "requests": 250,
+        "errors": 2,
+        "prompt_tokens": 27008808,
+        "completion_tokens": 186030,
+        "total_tokens": 27194838,
+        "cached_tokens": 26333588,
+        "credit": 35.59,
+        "cost_cny": 4.05505,
+        "elapsed_sum": 3956400,
+        "elapsed_n": 252,
+        "speed_n": 0,
+        "speed_avg": 0
+      }
+    }
+  ]
+}

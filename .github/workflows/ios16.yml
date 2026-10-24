@@ -2,7 +2,7 @@ name: iOS 16 compatibility
 on:
   workflow_dispatch:
   push:
-    branches: [ios16-compat, ios16-hub-profiles]
+    branches: [ios16-compat, ios16-hub-profiles, ios16-hub-dashboard]
 permissions:
   contents: read
 jobs:
@@ -37,7 +37,17 @@ jobs:
         run: |
           set -o pipefail
           DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import sys,json; d=json.load(sys.stdin); print(next(x["udid"] for ds in d["devices"].values() for x in ds if "iPhone" in x["name"]))')
-          xcodebuild test -project WB2API.xcodeproj -scheme WB2API -destination "platform=iOS Simulator,id=$DEVICE" -derivedDataPath .build-test CODE_SIGNING_ALLOWED=NO | tee tests.log | tail -60
+          xcodebuild test -project WB2API.xcodeproj -scheme WB2API -destination "platform=iOS Simulator,id=$DEVICE" -derivedDataPath .build-test -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO | tee tests.log | tail -60
+      - name: Export fixture UI snapshots
+        if: always()
+        continue-on-error: true
+        run: xcrun xcresulttool export attachments --path TestResults.xcresult --output-path ui-snapshots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-snapshots
+          path: ui-snapshots
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -1,0 +1,158 @@
+{
+  "ok": true,
+  "bucket_seconds": 3600,
+  "since": 1799913600,
+  "until": 1800000000,
+  "series": [
+    {
+      "at": 1799913600,
+      "total_tokens": 100000,
+      "requests": 1,
+      "credit": 0.1
+    },
+    {
+      "at": 1799917200,
+      "total_tokens": 100000,
+      "requests": 1,
+      "credit": 0.1
+    },
+    {
+      "at": 1799920800,
+      "total_tokens": 100000,
+      "requests": 1,
+      "credit": 0.1
+    },
+    {
+      "at": 1799924400,
+      "total_tokens": 100000,
+      "requests": 1,
+      "credit": 0.1
+    },
+    {
+      "at": 1799928000,
+      "total_tokens": 200000,
+      "requests": 2,
+      "credit": 0.2
+    },
+    {
+      "at": 1799931600,
+      "total_tokens": 300000,
+      "requests": 3,
+      "credit": 0.3
+    },
+    {
+      "at": 1799935200,
+      "total_tokens": 400000,
+      "requests": 4,
+      "credit": 0.4
+    },
+    {
+      "at": 1799938800,
+      "total_tokens": 400000,
+      "requests": 4,
+      "credit": 0.4
+    },
+    {
+      "at": 1799942400,
+      "total_tokens": 300000,
+      "requests": 3,
+      "credit": 0.3
+    },
+    {
+      "at": 1799946000,
+      "total_tokens": 500000,
+      "requests": 5,
+      "credit": 0.5
+    },
+    {
+      "at": 1799949600,
+      "total_tokens": 400000,
+      "requests": 4,
+      "credit": 0.4
+    },
+    {
+      "at": 1799953200,
+      "total_tokens": 200000,
+      "requests": 2,
+      "credit": 0.2
+    },
+    {
+      "at": 1799956800,
+      "total_tokens": 500000,
+      "requests": 5,
+      "credit": 0.5
+    },
+    {
+      "at": 1799960400,
+      "total_tokens": 400000,
+      "requests": 4,
+      "credit": 0.4
+    },
+    {
+      "at": 1799964000,
+      "total_tokens": 300000,
+      "requests": 3,
+      "credit": 0.3
+    },
+    {
+      "at": 1799967600,
+      "total_tokens": 900000,
+      "requests": 9,
+      "credit": 0.9
+    },
+    {
+      "at": 1799971200,
+      "total_tokens": 800000,
+      "requests": 8,
+      "credit": 0.8
+    },
+    {
+      "at": 1799974800,
+      "total_tokens": 1100000,
+      "requests": 11,
+      "credit": 1.1
+    },
+    {
+      "at": 1799978400,
+      "total_tokens": 1300000,
+      "requests": 13,
+      "credit": 1.3
+    },
+    {
+      "at": 1799982000,
+      "total_tokens": 1500000,
+      "requests": 15,
+      "credit": 1.5
+    },
+    {
+      "at": 1799985600,
+      "total_tokens": 2900000,
+      "requests": 29,
+      "credit": 2.9
+    },
+    {
+      "at": 1799989200,
+      "total_tokens": 4500000,
+      "requests": 45,
+      "credit": 4.5
+    },
+    {
+      "at": 1799992800,
+      "total_tokens": 7000000,
+      "requests": 70,
+      "credit": 7.0
+    },
+    {
+      "at": 1799996400,
+      "total_tokens": 3000000,
+      "requests": 30,
+      "credit": 3.0
+    },
+    {
+      "at": 1800000000,
+      "total_tokens": 400000,
+      "requests": 4,
+      "credit": 0.4
+    }
+  ]
+}

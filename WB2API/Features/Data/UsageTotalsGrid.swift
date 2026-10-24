@@ -3,6 +3,7 @@ import SwiftUI
 /// 用量总览：两列指标块。
 struct UsageTotalsGrid: View {
     let totals: UsageTotals?
+    var useTokenUnits = false
 
     private let columns = [
         GridItem(.flexible(), spacing: Metrics.s),
@@ -12,7 +13,7 @@ struct UsageTotalsGrid: View {
     var body: some View {
         LazyVGrid(columns: columns, spacing: Metrics.s) {
             StatTile(title: "请求数", value: Fmt.compact(totals?.requests))
-            StatTile(title: "总 Token", value: Fmt.compact(totals?.totalTokens))
+            StatTile(title: "总 Token", value: useTokenUnits ? Fmt.tokens(totals?.totalTokens) : Fmt.compact(totals?.totalTokens))
             StatTile(
                 title: "积分消耗",
                 value: Fmt.creditsDouble(totals?.credits),

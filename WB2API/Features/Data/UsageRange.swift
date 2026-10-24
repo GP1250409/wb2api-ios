@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// 用量统计区间：后端 `GET usage?hours=` 支持到 1440 小时（60 天）。
-enum UsageRange: Int, CaseIterable, Identifiable {
+enum UsageRange: Int, CaseIterable, Identifiable, Sendable {
     case days3 = 72
     case days7 = 168
     case days30 = 720
@@ -74,6 +74,9 @@ struct UsageRangePicker: View {
 struct UsageRangeSummaryCard: View {
     let range: UsageRange
     let totals: UsageTotals?
+    var subtitleOverride: String? = nil
+    var perDayOverride: String? = nil
+    var missingAsDash = false
 
     private var tokens: Int { totals?.totalTokens ?? 0 }
     private var requests: Int { totals?.requests ?? 0 }
@@ -87,11 +90,11 @@ struct UsageRangeSummaryCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Metrics.s) {
-            SectionHeader(title: "区间消耗", subtitle: range.subtitle)
+            SectionHeader(title: "区间消耗", subtitle: subtitleOverride ?? range.subtitle)
 
             VStack(alignment: .leading, spacing: Metrics.s) {
                 HStack(alignment: .firstTextBaseline, spacing: Metrics.xs) {
-                    Text(Fmt.tokens(tokens))
+                    Text(Fmt.tokens(missingAsDash ? totals?.totalTokens : tokens))
                         .font(.system(size: 40, weight: .semibold, design: .rounded))
                         .monospacedDigit()
 
@@ -103,9 +106,9 @@ struct UsageRangeSummaryCard: View {
                 }
 
                 HStack(spacing: Metrics.s) {
-                    stat("请求", Fmt.compact(requests))
-                    stat("积分", Fmt.creditsDouble(credits))
-                    stat("日均", perDayTokens)
+                    stat("请求", Fmt.compact(missingAsDash ? totals?.requests : requests))
+                    stat("积分", Fmt.creditsDouble(missingAsDash ? totals?.credits : credits))
+                    stat("日均", perDayOverride ?? perDayTokens)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

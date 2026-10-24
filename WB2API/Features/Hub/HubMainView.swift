@@ -4,13 +4,13 @@ struct HubMainView: View {
     let client: HubClient
     var body: some View {
         TabView {
-            HubResourceView(client: client, kind: .overview)
+            HubOverviewDashboard(client: client)
                 .tabItem { Label("概览", systemImage: "speedometer") }
             HubResourceView(client: client, kind: .accounts)
                 .tabItem { Label("账号", systemImage: "person.2.fill") }
             HubResourceView(client: client, kind: .tasks)
                 .tabItem { Label("任务", systemImage: "checklist") }
-            HubResourceView(client: client, kind: .usage)
+            HubUsageDashboard(client: client)
                 .tabItem { Label("数据", systemImage: "chart.bar.xaxis") }
             HubSettingsView(client: client)
                 .tabItem { Label("更多", systemImage: "ellipsis") }

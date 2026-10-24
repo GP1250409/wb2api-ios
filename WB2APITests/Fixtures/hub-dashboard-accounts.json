@@ -1,0 +1,89 @@
+{
+  "accounts": [
+    {
+      "uid": "fixture-0",
+      "nickname": "示例账号 1",
+      "realm": "cn",
+      "enabled": true,
+      "inCooldown": false,
+      "tokenExpired": false,
+      "modelCooldowns": [
+        {
+          "model": "deepseek-v4.1-flash",
+          "expiresAt": 1800003600
+        }
+      ],
+      "credits": {
+        "remain": 2600.2,
+        "earliest_expiring": {
+          "cycle_end_time": "2027-03-12 23:59:59",
+          "remain": 90
+        }
+      }
+    },
+    {
+      "uid": "fixture-1",
+      "nickname": "示例账号 2",
+      "realm": "cn",
+      "enabled": true,
+      "inCooldown": false,
+      "tokenExpired": false,
+      "modelCooldowns": [],
+      "credits": {
+        "remain": 4200,
+        "earliest_expiring": {
+          "cycle_end_time": "2027-03-12 23:59:59",
+          "remain": 90
+        }
+      }
+    },
+    {
+      "uid": "fixture-2",
+      "nickname": "示例账号 3",
+      "realm": "cn",
+      "enabled": true,
+      "inCooldown": false,
+      "tokenExpired": false,
+      "modelCooldowns": [],
+      "credits": {
+        "remain": 9000,
+        "earliest_expiring": {
+          "cycle_end_time": "2027-03-12 23:59:59",
+          "remain": 90
+        }
+      }
+    },
+    {
+      "uid": "fixture-3",
+      "nickname": "示例账号 4",
+      "realm": "cn",
+      "enabled": false,
+      "inCooldown": false,
+      "tokenExpired": false,
+      "modelCooldowns": [],
+      "credits": {
+        "remain": 700,
+        "earliest_expiring": {
+          "cycle_end_time": "2027-03-12 23:59:59",
+          "remain": 90
+        }
+      }
+    },
+    {
+      "uid": "fixture-4",
+      "nickname": "示例账号 5",
+      "realm": "intl",
+      "enabled": true,
+      "inCooldown": false,
+      "tokenExpired": false,
+      "modelCooldowns": [],
+      "credits": {
+        "remain": 9600,
+        "earliest_expiring": {
+          "cycle_end_time": "2027-03-12 23:59:59",
+          "remain": 90
+        }
+      }
+    }
+  ]
+}

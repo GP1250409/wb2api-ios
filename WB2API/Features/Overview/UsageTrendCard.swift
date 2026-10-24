@@ -7,12 +7,14 @@ import SwiftUI
 /// 概览本来就会拉 usage（为了「今日消耗」），这里复用同一份快照，不额外请求。
 struct UsageTrendCard: View {
     let usage: UsageSnapshot?
+    var maximumBuckets = 24
+    var subtitleOverride: String? = nil
 
     /// 拖动选中的桶索引；nil = 未选中（显示总量）。
     @State private var selectedIndex: Int?
 
     private var buckets: [UsagePoint] {
-        Array((usage?.series ?? []).suffix(24))
+        Array((usage?.series ?? []).suffix(maximumBuckets))
     }
 
     /// 柱体数据：索引 + token 数（ForEach 用 Identifiable，避免元组 key path）。
@@ -69,7 +71,7 @@ struct UsageTrendCard: View {
         if let activeIndex {
             return headline(for: activeIndex)
         }
-        return buckets.isEmpty ? "最近 24 小时" : "最近 \(buckets.count) 小时"
+        return subtitleOverride ?? (buckets.isEmpty ? "最近 24 小时" : "最近 \(buckets.count) 小时")
     }
 
     private func headline(for index: Int) -> String {
