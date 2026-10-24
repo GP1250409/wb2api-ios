@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 账号 Tab：搜索 + 筛选 + 滑动手势 + zoom 转场进详情。
+/// 账号 Tab：搜索 + 筛选 + 点按进详情（zoom 转场因玻璃卡掉帧已移除）。
 struct AccountsView: View {
     @Environment(SessionStore.self) private var session
     @State private var model = AccountsModel()
@@ -30,7 +30,6 @@ struct AccountsView: View {
             }
             .navigationDestination(for: Account.self) { account in
                 AccountDetailView(account: account)
-                    .navigationTransition(.zoom(sourceID: account.uid, in: zoomNamespace))
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -95,6 +94,8 @@ struct AccountsView: View {
             } catch {
                 return
             }
+            // 详情页打开时不刷新列表，避免列表重排和转场抢帧
+            guard path.isEmpty else { continue }
             await model.refreshIfStale(after: 10, using: session.client())
         }
     }

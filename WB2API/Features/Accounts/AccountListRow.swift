@@ -6,7 +6,7 @@ import SwiftUI
 struct AccountListRow: View {
     let account: Account
     var isBusy: Bool = false
-    let namespace: Namespace.ID
+    var namespace: Namespace.ID
     var onOpen: () -> Void
     let onAction: (AccountCommand) -> Void
 
@@ -17,7 +17,6 @@ struct AccountListRow: View {
                 .glassInteractive(cornerRadius: Metrics.radiusM)
         }
         .buttonStyle(.plain)
-        .matchedTransitionSource(id: account.uid, in: namespace)
         .scrollTransition(.interactive, axis: .vertical) { content, phase in
             content
                 .opacity(phase.isIdentity ? 1 : 0.6)
