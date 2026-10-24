@@ -1,8 +1,32 @@
 import SwiftUI
 
-/// 健康度主卡：健康环 + 「8/11 健康」+ 一句人话状态。
+/// 健康度主卡：健康环 + 「9/11 健康」+ 一句状态 + 只列异常项。
+///
+/// 正常状态不写「没有账号在冷却」这类空话——只有出问题时才出现对应行。
 struct HealthCard: View {
     let digest: OverviewDigest
+
+    /// 一行异常提示，图标与文字左对齐到同一列。
+    private struct StatusLine: Identifiable {
+        let id: Int
+        let icon: String
+        let text: String
+        let tint: Color
+    }
+
+    private var lines: [StatusLine] {
+        var items: [StatusLine] = []
+        if digest.cooling > 0 {
+            items.append(StatusLine(id: 0, icon: "hourglass", text: digest.coolingLine, tint: .orange))
+        }
+        if digest.disabled > 0 {
+            items.append(StatusLine(id: 1, icon: "person.badge.key.fill", text: digest.disabledLine, tint: .red))
+        }
+        if digest.inFlightFull {
+            items.append(StatusLine(id: 2, icon: "exclamationmark.triangle.fill", text: "并发已满，新请求会排队", tint: .orange))
+        }
+        return items
+    }
 
     var body: some View {
         HStack(alignment: .center, spacing: Metrics.m) {
@@ -26,23 +50,23 @@ struct HealthCard: View {
                     .font(.title3.bold())
                     .fixedSize(horizontal: false, vertical: true)
 
-                VStack(alignment: .leading, spacing: Metrics.xs) {
-                    Label(digest.coolingLine, systemImage: "hourglass")
-                        .foregroundStyle(digest.cooling > 0 ? Color.orange : Color.secondary)
-
-                    Label(digest.disabledLine, systemImage: "pause.circle")
-                        .foregroundStyle(digest.disabled > 0 ? Color.red : Color.secondary)
-
-                    Label(digest.checkinLine, systemImage: "checkmark.seal")
-                        .foregroundStyle(.secondary)
-
-                    if digest.inFlightFull {
-                        Label("并发已满，新请求会排队", systemImage: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
+                if !lines.isEmpty {
+                    VStack(alignment: .leading, spacing: Metrics.xs) {
+                        ForEach(lines) { line in
+                            HStack(spacing: Metrics.s) {
+                                Image(systemName: line.icon)
+                                    .font(.footnote.weight(.semibold))
+                                    .frame(width: 18, height: 18)
+                                    .foregroundStyle(line.tint)
+                                Text(line.text)
+                                    .font(.footnote)
+                                    .foregroundStyle(line.tint)
+                                    .lineLimit(2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
                     }
                 }
-                .font(.footnote)
-                .labelStyle(.titleAndIcon)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

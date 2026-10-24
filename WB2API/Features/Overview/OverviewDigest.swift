@@ -12,7 +12,8 @@ struct OverviewDigest: Equatable, Sendable {
     let disabled: Int
     let totalCredits: Int
     let requests: Int
-    let checkinDone: Int
+    /// 缓存命中率（来自 usage.totals）
+    let cacheHitRate: Double?
     let successRate: Double?
     let inFlightFull: Bool
     let earliestRecovery: String?
@@ -27,7 +28,7 @@ struct OverviewDigest: Equatable, Sendable {
         disabled = overview.disabled ?? accounts.filter(\.isDisabled).count
         totalCredits = overview.totalCredits
         requests = accounts.compactMap { $0.tokenUsage?.requestCount }.reduce(0, +)
-        checkinDone = accounts.filter { $0.checkinDone == true }.count
+        cacheHitRate = usage?.totals?.cacheHitRate
         inFlightFull = overview.isInFlightFull
 
         let successes = accounts.compactMap(\.successCount).reduce(0, +)
@@ -66,21 +67,12 @@ struct OverviewDigest: Equatable, Sendable {
         disabled > 0 ? "\(disabled) 个账号需重新登录" : "没有需要重新登录的账号"
     }
 
-    var checkinLine: String {
-        "今日签到 \(checkinDone)/\(total)"
-    }
-
     /// 今日 tokens 的大数表示（74.6M / 4.2B）。
     var todayTokensText: String {
         guard let todayTokens else { return "—" }
         return Fmt.tokens(todayTokens)
     }
 
-    var checkinCaption: String {
-        guard total > 0 else { return "暂无账号" }
-        if checkinDone >= total { return "全部已完成" }
-        return "还差 \(total - checkinDone) 个"
-    }
 
     // MARK: 计算
 

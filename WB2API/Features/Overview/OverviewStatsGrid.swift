@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 概览指标网格：积分 / 请求 / 成功率 / 签到进度。
+/// 概览指标网格：积分 / 今日消耗 / 成功率 / 缓存命中。
 struct OverviewStatsGrid: View {
     let digest: OverviewDigest
 
@@ -28,9 +28,9 @@ struct OverviewStatsGrid: View {
                 caption: "成功 / 请求"
             )
             StatTile(
-                title: "今日签到",
-                value: "\(digest.checkinDone)/\(digest.total)",
-                caption: digest.checkinCaption
+                title: "缓存命中",
+                value: Fmt.percent(digest.cacheHitRate),
+                caption: "命中 / 输入 token"
             )
         }
         .motion(Motion.numeric, value: digest)
