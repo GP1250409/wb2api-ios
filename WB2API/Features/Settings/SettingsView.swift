@@ -23,10 +23,8 @@ struct SettingsView: View {
 
         Form {
             Section {
-                TextField("https://…", text: $session.baseURLString)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.URL)
-                    .autocorrectionDisabled()
+                Text("地址与后端类型请在顶部服务器菜单的「管理服务器」中修改。")
+                    .font(.footnote).foregroundStyle(.secondary)
 
                 LabeledContent("当前地址", value: session.baseURLString)
                     .font(.footnote)
@@ -131,8 +129,11 @@ struct SettingsView: View {
     }
 
     private func saveKey() {
-        session.update(apiKey: keyDraft)
-        toast = Toast(kind: .success, text: "密钥已保存")
+        if session.update(apiKey: keyDraft) {
+            toast = Toast(kind: .success, text: "当前服务器密钥已保存")
+        } else {
+            toast = Toast(kind: .failure, text: session.credentialError ?? "密钥未能保存")
+        }
     }
 
     private func testConnection() {

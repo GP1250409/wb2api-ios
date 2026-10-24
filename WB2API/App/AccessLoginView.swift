@@ -3,6 +3,7 @@ import WebKit
 
 struct AccessLoginButton: View {
     let address: String
+    var probePath = "panel/api/overview"
     var onAuthenticated: () -> Void = {}
     @State private var showingLogin = false
     @State private var verifiedHost: String?
@@ -31,7 +32,7 @@ struct AccessLoginButton: View {
         }
         .sheet(isPresented: $showingLogin) {
             if let baseURL {
-                AccessLoginSheet(baseURL: baseURL) {
+                AccessLoginSheet(baseURL: baseURL, probePath: probePath) {
                     verifiedHost = baseURL.host
                     showingLogin = false
                     onAuthenticated()
@@ -47,10 +48,12 @@ private final class AccessLoginModel: ObservableObject {
     @Published var checking = false
     @Published var reloadID = UUID()
     let baseURL: URL
+    let probePath: String
     let onAuthenticated: () -> Void
 
-    init(baseURL: URL, onAuthenticated: @escaping () -> Void) {
+    init(baseURL: URL, probePath: String, onAuthenticated: @escaping () -> Void) {
         self.baseURL = baseURL
+        self.probePath = probePath
         self.onAuthenticated = onAuthenticated
     }
 
@@ -58,7 +61,7 @@ private final class AccessLoginModel: ObservableObject {
         guard !checking else { return }
         // A mere WebKit page load is not proof of authentication.
         // Probe the protected API without ever sending the panel API key to WebKit.
-        let url = baseURL.appendingPathComponent("panel/api/overview")
+        let url = baseURL.appendingPathComponent(probePath)
         let cookie = await AccessCookieBridge.header(for: url)
         if automatic && cookie == nil { return }
         checking = true
@@ -92,7 +95,7 @@ private final class AccessLoginModel: ObservableObject {
     }
 
     func clear() async {
-        await AccessCookieBridge.clear(for: baseURL.appendingPathComponent("panel/api/overview"))
+        await AccessCookieBridge.clear(for: baseURL.appendingPathComponent(probePath))
         message = "已清除本 App 对此站点保存的 CF 凭据，请重新验证。"
         reloadID = UUID()
     }
@@ -102,8 +105,8 @@ private struct AccessLoginSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: AccessLoginModel
 
-    init(baseURL: URL, onAuthenticated: @escaping () -> Void) {
-        _model = StateObject(wrappedValue: AccessLoginModel(baseURL: baseURL, onAuthenticated: onAuthenticated))
+    init(baseURL: URL, probePath: String, onAuthenticated: @escaping () -> Void) {
+        _model = StateObject(wrappedValue: AccessLoginModel(baseURL: baseURL, probePath: probePath, onAuthenticated: onAuthenticated))
     }
 
     var body: some View {
@@ -115,7 +118,7 @@ private struct AccessLoginSheet: View {
                 Text(model.message)
                     .font(.footnote).foregroundStyle(.secondary)
                     .padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                AccessWebView(url: model.baseURL.appendingPathComponent("panel/api/overview")) {
+                AccessWebView(url: model.baseURL.appendingPathComponent(model.probePath)) {
                     Task { await model.check(automatic: true) }
                 }
                 .id(model.reloadID)

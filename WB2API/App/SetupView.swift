@@ -17,7 +17,7 @@ struct SetupView: View {
                 VStack(spacing: Metrics.l) {
                     header
                     form
-                    AccessLoginButton(address: address) { error = nil }
+                    AccessLoginButton(address: address, probePath: session.backend.accessProbe) { error = nil }
                     if let error {
                         ErrorBanner(message: error, retry: { Task { await connect() } })
                     }
@@ -28,6 +28,7 @@ struct SetupView: View {
             .background(.background)
             .navigationTitle("连接面板")
             .navigationBarTitleDisplayMode(.inline)
+            .task { address = session.baseURLString }
         }
     }
 
@@ -36,7 +37,7 @@ struct SetupView: View {
             BrandMark(size: 56)
             Text("WorkBuddy 面板")
                 .font(.largeTitle.bold())
-            Text("填入面板地址与访问密钥")
+            Text(session.backend == .hub ? "使用此 Hub 面板的登录密码（不是 API Key）" : "填入此 Panel 的 API Key")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -53,7 +54,7 @@ struct SetupView: View {
                 .padding(Metrics.m)
                 .compatGlassEffect(.regular, in: RoundedRectangle(cornerRadius: Metrics.radiusM))
 
-            SecureField("api_key", text: $key)
+            SecureField(session.backend == .hub ? "面板登录密码" : "api_key", text: $key)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .focused($focused, equals: .key)
@@ -87,12 +88,26 @@ struct SetupView: View {
             error = "服务器地址无效"
             return
         }
-        let probe = APIClient(baseURL: base, apiKey: key)
+        let profileID = session.activeProfileID
+        let backend = session.backend
+        let revision = session.revision
         do {
-            _ = try await probe.overview()
-            session.update(apiKey: key)
+            let credential: String
+            if backend == .hub {
+                // Password is used once for login; only the returned session token is stored.
+                credential = try await HubClient(baseURL: base, token: "").login(password: key)
+            } else {
+                _ = try await APIClient(baseURL: base, apiKey: key).overview()
+                credential = key
+            }
+            guard profileID == session.activeProfileID, backend == session.backend,
+                  revision == session.revision, base == session.baseURL else { return }
+            let saved = backend == .hub ? session.updateHubToken(credential) : session.update(apiKey: credential)
+            if !saved { error = session.credentialError ?? "凭据未能保存" }
+            key = ""
         } catch {
-            self.error = (error as? APIError)?.errorDescription ?? error.localizedDescription
+            guard profileID == session.activeProfileID else { return }
+            self.error = error.localizedDescription
         }
     }
 }

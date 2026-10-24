@@ -2,7 +2,7 @@ name: iOS 16 compatibility
 on:
   workflow_dispatch:
   push:
-    branches: [ios16-compat]
+    branches: [ios16-compat, ios16-hub-profiles]
 permissions:
   contents: read
 jobs:
