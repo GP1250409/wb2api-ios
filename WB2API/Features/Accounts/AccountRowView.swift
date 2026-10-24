@@ -19,7 +19,7 @@ struct AccountRowView: View {
 
                 Text(statusLine)
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(account.needsLogin ? Color.red : Color.secondary)
                     .lineLimit(1)
             }
 

@@ -21,9 +21,12 @@ struct AccountAvatar: View {
             .frame(width: size, height: size)
             .overlay {
                 Image(systemName: icon)
-                    .font(.system(size: size * 0.40, weight: .semibold))
+                    .font(.system(size: size * 0.38, weight: .semibold))
                     .foregroundStyle(tint)
+                    // 固定到圆内：某些符号（地球）天生比字宽，不约束会溢出圆形
+                    .frame(width: size * 0.62, height: size * 0.62)
             }
+            .clipShape(Circle())
             .overlay(alignment: .bottomTrailing) {
                 Circle()
                     .fill(AccountStatusStyle.tint(for: account))
