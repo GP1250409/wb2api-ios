@@ -81,7 +81,7 @@ final class FormatterTests: XCTestCase {
             uid: "u2", nickname: "B", credits: 10, creditsTotal: 100, sessionDeadFails: 0,
             creditsEarliestExpiry: nil, creditsEarliestRemaining: nil, creditsExpiryBuckets: nil,
             cooling: false, until: nil, rateLimitedModels: nil, modelOff: nil, realm: "cn", disabled: false,
-            successCount: 1, lastSuccess: nil, lastErr: nil, checkinDone: true, tokenUsage: nil, modelCosts: nil
+            disabledReason: nil, successCount: 1, lastSuccess: nil, lastErr: nil, checkinDone: true, tokenUsage: nil, modelCosts: nil
         )
         XCTAssertEqual(Fmt.accountState(healthy), "可用")
     }
