@@ -10,6 +10,7 @@ private struct HubDashboardRead: Sendable {
 final class HubDashboardModel: ObservableObject {
     @Published private(set) var overview: HubOverviewPresentation?
     @Published private(set) var usage: HubUsagePresentation?
+    @Published private(set) var recent: JSONValue?
     @Published private(set) var isLoading = false
     @Published private(set) var error: String?
     @Published private(set) var warnings: [String] = []
@@ -72,15 +73,24 @@ final class HubDashboardModel: ObservableObject {
         defer { if generation == ticket { isLoading = false } }
         let window = HubUsageWindow(range: range, end: now)
         do {
-            let result = try await client.request("usage/analytics", query: window.query, timeout: 90)
-            let presentation = try HubDashboardAdapter.usage(result, window: window)
+            async let usageDoc = client.request("usage/analytics", query: window.query, timeout: 90)
+            async let recentDoc = Self.readRecent(client)
+            let usageResult = try await usageDoc
+            let recentResult = await recentDoc
+            let presentation = try HubDashboardAdapter.usage(usageResult, window: window)
             guard generation == ticket, !Task.isCancelled else { return }
             usage = presentation
+            recent = recentResult
             warnings = []
             updated = Date()
         } catch {
             guard generation == ticket, !error.isCancellation else { return }
             self.error = error.localizedDescription
         }
+    }
+
+    /// 「最近请求」独立加载，失败静默（不影响区间统计展示）。
+    private nonisolated static func readRecent(_ client: HubClient) async -> JSONValue? {
+        try? await client.request("usage/recent", query: [URLQueryItem(name: "limit", value: "12"), URLQueryItem(name: "realm", value: "all")], timeout: 60)
     }
 }

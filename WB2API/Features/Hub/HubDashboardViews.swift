@@ -69,7 +69,7 @@ struct HubUsageDashboard: View {
     @State private var dimension: UsageDimension = .account
     var body: some View {
         NavigationStack {
-            HubUsageContent(presentation: model.usage, range: $range, dimension: $dimension, updated: model.updated, isLoading: model.isLoading, error: model.error) {
+            HubUsageContent(presentation: model.usage, recent: model.recent, range: $range, dimension: $dimension, updated: model.updated, isLoading: model.isLoading, error: model.error) {
                 Task { await model.loadUsage(client: client, range: range) }
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -81,6 +81,7 @@ struct HubUsageDashboard: View {
 
 struct HubUsageContent: View {
     let presentation: HubUsagePresentation?
+    var recent: JSONValue?
     @Binding var range: UsageRange
     @Binding var dimension: UsageDimension
     var updated: Date?
@@ -122,6 +123,7 @@ struct HubUsageContent: View {
                 Text("该区间尚未成功读取，请刷新。不会用另一个区间或零值顶替。")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+            HubRecentRequestsCard(document: recent)
         }
     }
 

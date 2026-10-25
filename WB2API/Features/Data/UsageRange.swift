@@ -2,6 +2,7 @@ import SwiftUI
 
 /// 用量统计区间：后端 `GET usage?hours=` 支持到 1440 小时（60 天）。
 enum UsageRange: Int, CaseIterable, Identifiable, Sendable {
+    case today = 24
     case days3 = 72
     case days7 = 168
     case days30 = 720
@@ -12,6 +13,7 @@ enum UsageRange: Int, CaseIterable, Identifiable, Sendable {
 
     var title: String {
         switch self {
+        case .today: return "当天"
         case .days3: return "3 天"
         case .days7: return "7 天"
         case .days30: return "30 天"
@@ -21,6 +23,7 @@ enum UsageRange: Int, CaseIterable, Identifiable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .today: return "最近 24 小时"
         case .days3: return "最近 72 小时"
         case .days7: return "最近 7 天"
         case .days30: return "最近 30 天"
@@ -31,6 +34,7 @@ enum UsageRange: Int, CaseIterable, Identifiable, Sendable {
     /// 用来算日均；总计按实际覆盖天数估，至少 1 天。
     func days(coveredHours: Double) -> Double {
         switch self {
+        case .today: return 1
         case .days3: return 3
         case .days7: return 7
         case .days30: return 30

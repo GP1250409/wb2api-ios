@@ -4,30 +4,68 @@ import Foundation
 struct HubUsageWindow: Equatable, Sendable {
     let range: UsageRange
     let end: Date
-    var since: Double? { range == .all ? nil : end.timeIntervalSince1970 - Double(range.hours) * 3600 }
-    var until: Double? { range == .all ? nil : end.timeIntervalSince1970 }
+    var since: Double? {
+        if range == .all || range == .today { return nil }
+        return end.timeIntervalSince1970 - Double(range.hours) * 3600
+    }
+    var until: Double? {
+        if range == .all || range == .today { return nil }
+        return end.timeIntervalSince1970
+    }
     var query: [URLQueryItem] {
-        var items = [URLQueryItem(name: "realm", value: "all"), URLQueryItem(name: "range", value: range == .all ? "all" : "custom")]
-        if let since, let until {
-            items += [URLQueryItem(name: "since", value: String(format: "%.3f", since)), URLQueryItem(name: "until", value: String(format: "%.3f", until))]
+        var items = [URLQueryItem(name: "realm", value: "all")]
+        switch range {
+        case .today:
+            items.append(URLQueryItem(name: "range", value: "today"))
+        case .all:
+            items.append(URLQueryItem(name: "range", value: "all"))
+        default:
+            items.append(URLQueryItem(name: "range", value: "custom"))
+            if let since, let until {
+                items += [
+                    URLQueryItem(name: "since", value: String(format: "%.3f", since)),
+                    URLQueryItem(name: "until", value: String(format: "%.3f", until))
+                ]
+            }
         }
         return items
     }
-    var subtitle: String { range == .all ? "有记录以来（Hub 可用全量记录）" : range.subtitle }
-    var days: Double? { range == .all ? nil : Double(range.hours) / 24 }
+    var subtitle: String {
+        switch range {
+        case .all: return "有记录以来（Hub 可用全量记录）"
+        case .today: return "今天（服务器当地时间）"
+        default: return range.subtitle
+        }
+    }
+    var days: Double? {
+        switch range {
+        case .all: return nil
+        case .today: return 1
+        default: return Double(range.hours) / 24
+        }
+    }
 
     func validate(_ analytics: JSONValue) throws {
         let reported = analytics.field("window")
         guard reported.objectValue != nil else { throw HubError.rejected("Hub 未确认统计窗口，暂不展示区间数据。") }
-        if let since, let until {
-            guard let lo = reported.field("since").finiteNumber,
-                  let hi = reported.field("until").finiteNumber,
-                  abs(lo - since) < 0.01, abs(hi - until) < 0.01 else {
-                throw HubError.rejected("Hub 返回的统计窗口与所选区间不一致，请检查后端版本。")
+        switch range {
+        case .today:
+            // 后端 range=today：window.since 为今天午夜（非空），until 为 null。
+            guard reported.field("since").finiteNumber != nil,
+                  reported.field("until") == .null else {
+                throw HubError.rejected("Hub 返回的今日窗口与所选区间不一致，请检查后端版本。")
             }
-        } else {
+        case .all:
             guard reported.field("since") == .null, reported.field("until") == .null else {
                 throw HubError.rejected("Hub 未返回全量窗口，不能标记为总计。")
+            }
+        default:
+            if let since, let until {
+                guard let lo = reported.field("since").finiteNumber,
+                      let hi = reported.field("until").finiteNumber,
+                      abs(lo - since) < 0.01, abs(hi - until) < 0.01 else {
+                    throw HubError.rejected("Hub 返回的统计窗口与所选区间不一致，请检查后端版本。")
+                }
             }
         }
     }
