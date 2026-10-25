@@ -95,8 +95,13 @@ struct HubOverviewPresentation: Sendable {
 enum HubDashboardFormat {
     static func credits(_ value: Double?) -> String {
         guard let value, value.isFinite else { return "—" }
-        if abs(value) >= 10_000 { return String(format: "%.1fk", value / 1000) }
-        return Fmt.creditsDouble(value)
+        // 积分不用 k/M 缩写（会与 token 单位混淆），完整数字 + 千分位逗号，最多 2 位小数。
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: value)) ?? String(format: "%.2f", value)
     }
     static func money(_ value: Double?) -> String {
         guard let value, value.isFinite else { return "—" }

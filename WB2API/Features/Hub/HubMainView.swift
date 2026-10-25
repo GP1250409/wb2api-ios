@@ -6,7 +6,7 @@ struct HubMainView: View {
         TabView {
             HubOverviewDashboard(client: client)
                 .tabItem { Label("概览", systemImage: "speedometer") }
-            HubResourceView(client: client, kind: .accounts)
+            HubAccountsView(client: client)
                 .tabItem { Label("账号", systemImage: "person.2.fill") }
             HubResourceView(client: client, kind: .tasks)
                 .tabItem { Label("任务", systemImage: "checklist") }
