@@ -229,6 +229,15 @@ extension APIClient {
         return try await get("\(Self.apiPrefix)/usage", query: query)
     }
 
+    /// 显式区间（unix 秒），用于「今天」/「自定义」：from 为当天 0 点（本地时区），to 缺省 = 到现在。
+    func usage(from: Date, to: Date? = nil) async throws -> UsageSnapshot {
+        var query = [URLQueryItem(name: "from", value: String(Int(from.timeIntervalSince1970)))]
+        if let to {
+            query.append(URLQueryItem(name: "to", value: String(Int(to.timeIntervalSince1970))))
+        }
+        return try await get("\(Self.apiPrefix)/usage", query: query)
+    }
+
     func balanceHistory(days: Int = 7) async throws -> BalanceHistory {
         try await get("\(Self.apiPrefix)/balance_history", query: [URLQueryItem(name: "days", value: String(days))])
     }

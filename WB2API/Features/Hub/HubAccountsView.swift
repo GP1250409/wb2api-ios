@@ -184,10 +184,26 @@ struct HubAccountsView: View {
 
     private var accounts: [JSONValue] { model.document.field("accounts").arrayValue ?? [] }
 
+    /// 国内（cn）在前，国际（intl/gmail）排最后；同域按昵称排序。
+    private var sortedAccounts: [JSONValue] {
+        accounts.sorted { a, b in
+            let rankA = realmRank(a)
+            let rankB = realmRank(b)
+            if rankA != rankB { return rankA < rankB }
+            let na = a.field("nickname").stringValue ?? ""
+            let nb = b.field("nickname").stringValue ?? ""
+            return na < nb
+        }
+    }
+
+    private func realmRank(_ account: JSONValue) -> Int {
+        account.field("realm").stringValue == "intl" ? 1 : 0
+    }
+
     private var filtered: [JSONValue] {
         let kw = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !kw.isEmpty else { return accounts }
-        return accounts.filter { account in
+        guard !kw.isEmpty else { return sortedAccounts }
+        return sortedAccounts.filter { account in
             let uid = account.field("uid").stringValue ?? ""
             let nick = account.field("nickname").stringValue ?? ""
             return nick.localizedCaseInsensitiveContains(kw) || uid.localizedCaseInsensitiveContains(kw)

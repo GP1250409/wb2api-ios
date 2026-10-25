@@ -23,7 +23,7 @@ enum UsageRange: Int, CaseIterable, Identifiable, Sendable {
 
     var subtitle: String {
         switch self {
-        case .today: return "最近 24 小时"
+        case .today: return "今天 0 点到现在"
         case .days3: return "最近 72 小时"
         case .days7: return "最近 7 天"
         case .days30: return "最近 30 天"

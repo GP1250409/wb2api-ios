@@ -63,6 +63,7 @@ final class HubDashboardLoaderTests: XCTestCase {
                     response = analytics.setting("window", .object(["since": .double(DashboardFixture.now.timeIntervalSince1970 - 3600), "until": .null]))
                 } else { response = analytics }
             case "/usage/timeseries": response = series
+            case "/usage/recent": response = .object(["total": .int(0), "rows": .array([])])
             default: throw URLError(.unsupportedURL)
             }
             return (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!, try JSONEncoder().encode(response))
@@ -83,6 +84,7 @@ final class HubDashboardLoaderTests: XCTestCase {
         XCTAssertTrue(calls.allSatisfy { $0.0 == "GET" })
         XCTAssertTrue(calls.allSatisfy { $0.2 })
         XCTAssertFalse(calls.contains { $0.1 == "/panel/api/overview" })
-        XCTAssertEqual(calls.count, 6)
+        XCTAssertTrue(calls.contains { $0.1 == "/usage/recent" })
+        XCTAssertEqual(calls.count, 7)
     }
 }

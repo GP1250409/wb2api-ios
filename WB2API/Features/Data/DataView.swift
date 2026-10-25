@@ -90,8 +90,14 @@ struct DataView: View {
 
     private func load() async {
         guard let client = session.client(for: serverScope) else { return }
-        let hours = range.hours
-        await loader.load { try await client.usage(hours: hours) }
+        if range == .today {
+            // 当天 = 今天 0 点（本地时区）到现在，后端显式区间（from/to）
+            let start = Calendar.current.startOfDay(for: Date())
+            await loader.load { try await client.usage(from: start) }
+        } else {
+            let hours = range.hours
+            await loader.load { try await client.usage(hours: hours) }
+        }
     }
 
     private func refresh() {
