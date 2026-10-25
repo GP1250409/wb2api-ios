@@ -136,6 +136,11 @@ struct HubAccountRow: View {
                     .foregroundStyle((!enabled || tokenExpired) ? Color.red : Color.secondary)
                     .lineLimit(1)
 
+                Text("今日消耗 \(Fmt.tokens(dailyTokens)) tokens")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+
                 if !maskIdentifiers && !uid.isEmpty {
                     Text(uid)
                         .font(.caption.monospaced())
