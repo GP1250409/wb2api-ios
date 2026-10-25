@@ -71,6 +71,7 @@ struct HubAccountRow: View {
     private var inCooldown: Bool { account.field("inCooldown").boolValue == true }
     private var remain: Double { account.field("credits").field("remain").finiteNumber ?? 0 }
     private var size: Double { account.field("credits").field("size").finiteNumber ?? 0 }
+    private var dailyTokens: Int { account.field("dailyTokensToday").countNumber ?? 0 }
 
     private var displayName: String {
         let raw = nickname.isEmpty ? (uid.isEmpty ? "—" : String(uid.prefix(8))) : nickname
