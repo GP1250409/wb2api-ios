@@ -6,7 +6,6 @@ struct TasksView: View {
     @Environment(\.serverScope) private var serverScope
 
     @StateObject private var queue = Loader<TaskQueue>()
-    @StateObject private var jobs = Loader<JSONValue>()
     @State private var scannedTasks: [AccountTask] = []
     @State private var selected: Set<String> = []
     @StateObject private var runner = TaskRunController()
@@ -19,7 +18,7 @@ struct TasksView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Metrics.m) {
-                    if let message = queue.error ?? jobs.error {
+                    if let message = queue.error {
                         ErrorBanner(message: message, retry: retry)
                     }
 
@@ -50,7 +49,6 @@ struct TasksView: View {
                             onRunOne: runSingle(_:),
                             onAction: { task, action in perform(action, on: task) }
                         )
-                        JobListView(jobs: jobs.value)
                     }
                 }
                 .padding(.horizontal, Metrics.m)
@@ -143,7 +141,6 @@ struct TasksView: View {
     private func refreshAll() async {
         guard let client = session.client(for: serverScope) else { return }
         await queue.load { try await client.taskQueue() }
-        await jobs.load { try await client.taskJobs() }
     }
 
     /// 队列状态随调度推进变化，页面可见时每 10 秒拉一次；`.task` 在页面消失时自动取消。
