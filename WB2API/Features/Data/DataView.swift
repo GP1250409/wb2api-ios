@@ -51,6 +51,9 @@ struct DataView: View {
                             .staggeredAppear(index: 1)
 
                         }
+
+                        DataHistoryLinks()
+                            .staggeredAppear(index: 3)
                     } else {
                         CompatEmptyState {
                             Label("暂无用量数据", systemImage: "chart.bar.xaxis")

@@ -124,20 +124,24 @@ struct BalanceHistoryView: View {
         }
         .navigationTitle("余额趋势")
         .navigationBarTitleDisplayMode(.inline)
-        .refreshable { await load() }
+        .refreshable { await load(syncUpstream: true) }
         .task(id: days) { await load() }
     }
 
     // MARK: - 动作
 
-    private func load() async {
+    private func load(syncUpstream: Bool = false) async {
         guard let client = session.client(for: serverScope) else { return }
+        if syncUpstream {
+            // 先触发一轮上游余额查询，账本才会落新流水/新基线（与积分历史同口径）。
+            await BalanceSync.refreshAll(client: client)
+        }
         await loader.load { try await client.balanceHistory(days: days) }
     }
 
     private func retry() {
         loader.clearError()
-        Task { await load() }
+        Task { await load(syncUpstream: true) }
     }
 
     // MARK: - 展示
